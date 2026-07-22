@@ -1,0 +1,90 @@
+:root {
+  color-scheme: light;
+  --color-bg: #f8f7fc;
+  --color-surface: #fffbff;
+  --color-surface-1: #f4f1f8;
+  --color-surface-2: #eeeaf3;
+  --color-surface-3: #e8e4ee;
+  --color-primary: #5b5fc7;
+  --color-primary-hover: #5054b7;
+  --color-primary-pressed: #44489f;
+  --color-primary-container: #e3e2ff;
+  --color-on-primary-container: #292a78;
+  --color-text-primary: #1c1b20;
+  --color-text-secondary: #49454f;
+  --color-text-muted: #79747e;
+  --color-text-disabled: #aaa5af;
+  --color-success: #2e7d5b;
+  --color-success-container: #dff3e8;
+  --color-warning: #9a6700;
+  --color-warning-container: #fff0c7;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-info: #4267b2;
+  --color-info-container: #dce7ff;
+  --color-divider: #e2dee7;
+  --color-outline: #cbc5d0;
+  --color-focus: #5b5fc7;
+  --color-overlay: rgb(28 27 32 / 48%);
+  --shadow-overlay: 0 12px 36px rgb(28 27 32 / 16%);
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-menu: 12px;
+  --radius-card: 14px;
+  --radius-container: 18px;
+  --radius-dialog: 20px;
+  --radius-overlay: 24px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --motion-press: 100ms;
+  --motion-hover: 150ms;
+  --motion-menu: 180ms;
+  --motion-dialog: 220ms;
+  --motion-page: 250ms;
+  --sidebar-expanded: 220px;
+  --sidebar-collapsed: 72px;
+  --titlebar-height: 48px;
+  --content-padding: 32px;
+  --density-row: 52px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #141318;
+  --color-surface: #1d1b20;
+  --color-surface-1: #252329;
+  --color-surface-2: #302d35;
+  --color-surface-3: #39363e;
+  --color-primary: #c2c1ff;
+  --color-primary-hover: #d0cfff;
+  --color-primary-pressed: #aaa9e9;
+  --color-primary-container: #3f427e;
+  --color-on-primary-container: #e3e2ff;
+  --color-text-primary: #e7e1e9;
+  --color-text-secondary: #cac4cf;
+  --color-text-muted: #aaa3ad;
+  --color-text-disabled: #716b75;
+  --color-divider: #47424b;
+  --color-outline: #625c66;
+  --color-overlay: rgb(0 0 0 / 64%);
+  --shadow-overlay: 0 14px 40px rgb(0 0 0 / 34%);
+}
+
+:root[data-density="compact"] {
+  --content-padding: 24px;
+  --density-row: 46px;
+}
+
+:root[data-reduced-motion="true"] *,
+:root[data-reduced-motion="true"] *::before,
+:root[data-reduced-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  transition-duration: 1ms !important;
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+}

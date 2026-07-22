@@ -1,0 +1,53 @@
+{
+  "name": "tool-center",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Baiwei-RTY/ToolCenter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Baiwei-RTY/ToolCenter/issues"
+  },
+  "homepage": "https://github.com/Baiwei-RTY/ToolCenter#readme",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "scripts": {
+    "dev": "corepack pnpm plugin:dev",
+    "dev:web": "tsx tooling/generate-registry/src/index.ts && corepack pnpm --filter @tool-center/desktop dev",
+    "plugin:dev": "tsx tooling/validate-plugin/src/index.ts && tsx tooling/generate-registry/src/index.ts && corepack pnpm --filter @tool-center/desktop tauri dev",
+    "build": "tsx tooling/generate-registry/src/index.ts && corepack pnpm typecheck && corepack pnpm --filter @tool-center/desktop tauri build",
+    "build:web": "tsx tooling/generate-registry/src/index.ts && corepack pnpm --filter @tool-center/desktop build:web",
+    "typecheck": "tsc -p packages/plugin-contract/tsconfig.json && tsc -p packages/plugin-runtime/tsconfig.json && tsc -p apps/desktop/tsconfig.json",
+    "lint": "eslint . && stylelint \"**/*.css\" --allow-empty-input",
+    "test": "vitest run",
+    "registry:generate": "tsx tooling/generate-registry/src/index.ts",
+    "plugin:create": "tsx tooling/create-plugin/src/index.ts",
+    "plugin:validate": "tsx tooling/validate-plugin/src/index.ts",
+    "verify": "corepack pnpm registry:generate && corepack pnpm plugin:validate && corepack pnpm typecheck && corepack pnpm lint && corepack pnpm test && corepack pnpm rust:fmt && corepack pnpm rust:clippy && corepack pnpm rust:test",
+    "release:package": "tsx tooling/package-release/src/index.ts",
+    "release:build": "corepack pnpm verify && corepack pnpm --filter @tool-center/desktop tauri build && corepack pnpm release:package",
+    "rust:fmt": "cargo fmt --all -- --check",
+    "rust:check": "cargo check --workspace",
+    "rust:clippy": "cargo clippy --workspace --all-targets -- -D warnings",
+    "rust:test": "cargo test --workspace"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.1.1",
+    "eslint": "10.7.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "globals": "17.7.0",
+    "stylelint": "17.14.0",
+    "stylelint-config-standard": "40.0.0",
+    "tsx": "4.23.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.64.0",
+    "vitest": "4.1.10"
+  }
+}

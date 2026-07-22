@@ -1,0 +1,38 @@
+# JavaScript dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Rust build output
+target/
+
+# Generated formal release artifacts (publish through GitHub Releases)
+/正式版/ToolCenter.exe
+/正式版/ToolCenter.exe.sha256
+/正式版/版本信息.json
+
+# Local design handoff and reference exports
+/设计交接/
+/ToolCenter-视觉交接-v*/
+/docs/ToolCenter视觉交接_*.md
+/docs/ToolCenter视觉素材交付清单_*.md
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# Runtime data and logs
+*.log
+data/
+logs/
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

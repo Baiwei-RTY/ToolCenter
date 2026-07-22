@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+  - plugins/*
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAge: 1440
