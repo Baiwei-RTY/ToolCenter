@@ -14,6 +14,8 @@ ToolCenter 是一个面向 Windows 10/11 的轻量化桌面工具启动器。项
 - 统一设置、权限、存储、日志和调度服务；
 - 桌面小组件多实例、位置/尺寸/锁定/层级持久化和多显示器迁移；
 - Windows 音频设备枚举、默认端点、原生变化通知和权限隔离；
+- Windows 活动显示器枚举、HDR 状态读取、指定显示器切换和独立权限隔离；
+- 内置 HDR 开关 Widget，可选择目标显示器并通过受权限保护的宿主能力切换 HDR；
 - 概览、工具、插件管理、运行状态、设置、全局浮层和状态组件的正式界面；
 - 插件创建、注册表生成和规则校验工具。
 
@@ -107,6 +109,6 @@ cmd /c cargo --version
 
 ## 开源许可
 
-ToolCenter 源代码采用 [MIT License](LICENSE) 开放。音频设备切换插件使用的部分 SVG 图标来自 Google Material Symbols，按 Apache License 2.0 使用，详情见 [第三方许可证与处理说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)。
+ToolCenter 源代码采用 [MIT License](LICENSE) 开放。音频设备切换和 HDR 开关插件使用的部分 SVG 图标来自 Google Material Symbols，按 Apache License 2.0 使用，详情见 [第三方许可证与处理说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)。
 
 本地设计交接包、原始参考截图、构建产物和便携式 EXE 不进入源码仓库。可执行文件应通过 GitHub Releases 独立发布。

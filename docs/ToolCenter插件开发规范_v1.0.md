@@ -120,6 +120,7 @@ ToolCenter 桌面应用
 | `permissions` | 可用 | 查询、请求和记录权限决定 |
 | `logger` | 可用 | 写入 debug、info、warn、error 日志 |
 | `audio` | 可用（Windows） | 枚举输入/输出设备、读取默认端点、原生订阅设备变化和切换默认端点；由 Rust 强制校验音频权限 |
+| `display` | 可用（Windows） | 枚举活动显示器、读取 HDR 支持与开关状态、切换指定显示器 HDR；由 Rust 强制校验显示器权限 |
 
 ### 4.2 尚未开放的服务
 
@@ -158,7 +159,8 @@ ToolCenter 桌面应用
 | 多显示器与 DPI | 宿主负责显示器识别、缩放更新、缺失显示器迁移和位置恢复 | 插件必须在容器内响应式布局，不读取屏幕坐标决定内容尺寸 |
 | 音频读取 | Windows Core Audio 原生枚举、默认端点读取和通知回调已接入 | 插件只能通过 `PluginContext.audio` 使用，不得自行调用系统接口 |
 | 音频控制 | 默认端点设置能力已隔离在 Rust 兼容层 | 首个使用该能力的插件仍须在目标 Windows 机器上完成真实切换验收 |
-| 浏览器开发模式 | 使用内存桥；音频列表为空、默认设备为 `null`，Widget 使用模拟主显示器 | 只能用于界面和纯逻辑开发，不能作为原生能力验收证据 |
+| HDR 显示器 | DisplayConfig 活动目标、HDR 状态和指定目标切换已接入 | 插件只能通过 `PluginContext.display` 使用，不得复用 Widget 显示器 ID 或直接调用 Windows API |
+| 浏览器开发模式 | 使用内存桥；音频列表为空、默认设备为 `null`，Display 服务明确返回不可用，Widget 使用模拟主显示器 | 只能用于界面和纯逻辑开发，不能作为原生能力验收证据 |
 
 当前宿主仍只允许受信任的第一方内置插件。发布构建通过只证明宿主和插件可以一起编译，不替代插件自己的真实设备、多实例和资源清理验收。
 
@@ -559,7 +561,40 @@ useEffect(() => {
 
 Windows 没有公开且受支持的“修改系统默认音频端点”API。宿主将未公开的 `IPolicyConfig::SetDefaultEndpoint` 隔离在 Rust 兼容层中；插件只能调用公共 `audio.setDefaultDevice()`，不得依赖、复制或直接访问该接口。Windows 更新后如兼容层不可用，插件必须显示可恢复错误，不得回退到 PowerShell、外部 EXE 或第三方命令行工具。
 
-### 7.5 Service
+### 7.5 Windows 显示器 HDR 服务
+
+`PluginContext.display` 提供：
+
+```ts
+interface DisplaySummary {
+  readonly id: string;
+  readonly name: string;
+  readonly sourceName: string;
+  readonly primary: boolean;
+  readonly hdrSupported: boolean;
+  readonly hdrEnabled: boolean;
+}
+
+interface DisplayService {
+  listDisplays(): Promise<readonly DisplaySummary[]>;
+  setHdrEnabled(displayId: string, enabled: boolean): Promise<void>;
+}
+```
+
+使用规则：
+
+- 枚举活动显示器和读取 HDR 状态使用 `display.read`；
+- 开启或关闭 HDR 单独使用 `display.control`，Rust 命令层会再次校验；
+- `DisplaySummary.id` 是独立于 Widget Manager 显示器 ID 的不透明标识，只能原样回传；
+- 写入前必须以最新列表确认用户选择，目标失效后不得自动控制另一台显示器；
+- 写入完成后重新调用 `listDisplays()`，以真实 Windows 状态更新界面；
+- 不把 Advanced Color、WCG 或自动颜色管理直接当成 HDR；
+- 不使用 PowerShell、注册表、外部 EXE、快捷键模拟、插件内 Windows API 或原始 Rust command；
+- 首版没有显示器变化订阅，不得创建常驻轮询；只在入口显示、用户手动刷新和切换完成后读取。
+
+浏览器 Memory Host 不模拟 HDR 成功。真实切换可能短暂黑屏并改变系统设置，测试前必须提醒用户并获得单独确认。
+
+### 7.6 Service
 
 Service 必须满足：
 
@@ -636,6 +671,13 @@ const eventName = `${context.pluginId}:data-changed`;
 - `audio.control`：修改 Windows 默认输出或默认麦克风；
 - 只展示设备的 Widget 不得因为声明了 `audio.read` 就自动获得 `audio.control`；
 - 权限处于 `prompt` 或 `denied` 时，Rust 受保护命令一律拒绝执行。
+
+显示器权限同样必须分开申请：
+
+- `display.read`：枚举活动显示器并读取名称、主显示器标记和 HDR 状态；
+- `display.control`：开启或关闭指定显示器的 Windows HDR；
+- 只读取状态的插件不得因为声明了 `display.read` 就自动获得 `display.control`；
+- 显示器标识在每次写入前由 Rust 根据当前活动路径重新验证。
 
 请求示例：
 
@@ -811,6 +853,7 @@ README 是下一次插件开发对话的交接入口，开发完成后必须同�
 - Page 核心交互、空状态和错误状态测试；
 - Widget 多实例、尺寸切换、隐藏、锁定、错误边界和卸载资源测试；
 - 使用音频服务时的读取/控制权限拒绝、设备失效、事件取消订阅和切换失败测试；
+- 使用显示器服务时的读取/控制权限拒绝、目标失效、HDR 不支持、状态不确定、拓扑变化和写入后状态核对测试；
 - 使用持久化时的数据兼容或迁移测试；
 - 使用调度器或事件时的资源释放测试。
 
@@ -891,6 +934,8 @@ Widget 插件还必须在 ToolCenter 独立桌面应用中验证：多个实例�
 
 涉及音频硬件时，还必须在目标 Windows 机器上验证：输入与输出设备枚举；当前默认端点；`audio.read` 和 `audio.control` 分别被拒绝时的降级行为；所需默认角色的真实切换；USB、蓝牙或其他目标设备的插拔事件；当前设备在操作期间失效时的恢复路径。真实切换测试会改变系统设置，执行前必须提醒用户并获得确认；不得只以浏览器测试、COM 对象创建成功或接口调用未抛错代替。
 
+涉及显示器 HDR 时，还必须在目标 Windows 机器上验证：单屏和多屏枚举；同型号显示器区分；HDR 与非 HDR 混合；`display.read` 和 `display.control` 权限拒绝；指定目标开启和关闭；其他显示器不受影响；结果与 Windows HDR 设置一致；拔出目标、拓扑变化、远程会话和驱动拒绝。真实 HDR 切换执行前必须再次获得用户确认；不得以浏览器模拟或只读枚举代替。
+
 以上条件全部通过后，插件才可以标记为完成。
 
 ## 16. 规范变更
@@ -913,6 +958,7 @@ Widget 插件还必须在 ToolCenter 独立桌面应用中验证：多个实例�
 | 剪贴板 | `clipboard.read`、`clipboard.write` |
 | 文件 | `files.select`、`files.read-selected`、`files.write-selected`、`files.read-directory`、`files.write-directory` |
 | 音频 | `audio.read`、`audio.control` |
+| 显示器 | `display.read`、`display.control` |
 | 系统 | `system.read-basic`、`system.monitor`、`system.process-read`、`system.process-control` |
 | 网络和通知 | `network.request`、`notifications.show` |
 | 后台和窗口 | `hotkeys.register`、`background.run`、`window.detached` |
@@ -958,6 +1004,7 @@ Widget 插件还必须在 ToolCenter 独立桌面应用中验证：多个实例�
 [ ] Action/Page/Widget 的失败、空状态和权限拒绝路径已处理
 [ ] Widget 多实例、尺寸、隐藏、锁定、位置恢复和卸载清理已验证（如适用）
 [ ] 音频读取与控制权限、默认角色和设备变化订阅已验证（如适用）
+[ ] HDR 显示器权限、不透明目标、状态区分和写入后核对已验证（如适用）
 [ ] 调度器、事件、timer 和监听器可以完整释放
 [ ] CSS 有插件作用域，界面适配 960×640
 [ ] README 已记录入口、权限、存储、测试和限制

@@ -10,7 +10,8 @@ Tauri Core
 ├─ 权限记录和二次校验
 ├─ 日志与诊断
 ├─ Widget 实例、显示器和透明窗口区域管理
-└─ Windows Core Audio 服务
+├─ Windows Core Audio 服务
+└─ Windows DisplayConfig HDR 服务
 
 Main WebView
 ├─ Launcher Shell
@@ -30,6 +31,12 @@ Audio COM Worker
 ├─ IMMNotificationClient 原生设备通知
 ├─ audio.read / audio.control 命令级权限校验
 └─ 隔离的默认端点兼容层
+
+DisplayConfig HDR Service
+├─ 按调用枚举当前活动显示路径
+├─ 使用独立不透明 ID 标识 HDR 控制目标
+├─ display.read / display.control 命令级权限校验
+└─ 写入前重新验证目标，写入后重新读取真实状态
 ```
 
 ## 关键决策
@@ -42,6 +49,7 @@ Audio COM Worker
 6. Widget 位置保存为显示器 ID、工作区相对坐标、缩放比例、尺寸和最后有效位置。显示器失效时迁移到主显示器；分辨率和 DPI 改变时保持相对位置并重新裁切。
 7. 透明宿主通过 Windows `SetWindowRgn` 只保留 Widget 与已声明弹层区域；拖动期间临时恢复完整窗口区域，结束后重新应用局部区域。
 8. 音频查询和通知使用公开的 Windows Core Audio API。默认音频端点切换没有受支持的公开 API，因此未公开 `IPolicyConfig` 只存在于单独 Rust 兼容层，失败时返回结构化错误，不向插件暴露。
+9. HDR 使用 Windows CCD/DisplayConfig API。Windows 11 使用独立 HDR 状态，Windows 10 只在旧接口能够可靠表示 HDR 时降级；无法区分 HDR 与其他 Advanced Color 状态时返回结构化错误。Display 服务不缓存目标、不轮询，也不复用 Widget Manager 的显示器 ID。
 
 ## 持久化位置
 
