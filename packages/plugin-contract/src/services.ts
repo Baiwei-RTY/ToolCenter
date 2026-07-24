@@ -124,6 +124,20 @@ export interface AudioService {
   setDefaultDevice(deviceId: string, roles?: readonly AudioDefaultRole[]): Promise<void>;
 }
 
+export interface DisplaySummary {
+  readonly id: string;
+  readonly name: string;
+  readonly sourceName: string;
+  readonly primary: boolean;
+  readonly hdrSupported: boolean;
+  readonly hdrEnabled: boolean;
+}
+
+export interface DisplayService {
+  listDisplays(): Promise<readonly DisplaySummary[]>;
+  setHdrEnabled(displayId: string, enabled: boolean): Promise<void>;
+}
+
 export interface SystemSummary {
   readonly platform: string;
   readonly architecture: string;
@@ -178,6 +192,7 @@ export interface PluginContext {
   readonly notifications: NotificationService;
   readonly hotkeys: HotkeyService;
   readonly audio: AudioService;
+  readonly display: DisplayService;
   readonly system: SystemService;
   readonly tasks: TaskService;
   readonly permissions: PermissionService;
