@@ -14,6 +14,8 @@ export type KnownPermission =
   | "files.write-directory"
   | "audio.read"
   | "audio.control"
+  | "display.read"
+  | "display.control"
   | "system.read-basic"
   | "system.monitor"
   | "system.process-read"

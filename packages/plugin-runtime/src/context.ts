@@ -4,6 +4,7 @@ import type {
   AudioDeviceKind,
   AudioDeviceSummary,
   CommandService,
+  DisplaySummary,
   HostCommand,
   LoggerService,
   PermissionDecision,
@@ -142,6 +143,16 @@ export function createPluginContextFactory(options: HostContextOptions): PluginC
               pluginId,
               deviceId,
               roles: roles === undefined ? undefined : [...roles],
+            }),
+        },
+        display: {
+          listDisplays: () =>
+            bridge.invoke<readonly DisplaySummary[]>("display_targets_list", { pluginId }),
+          setHdrEnabled: (displayId: string, enabled: boolean) =>
+            bridge.invoke<void>("display_hdr_set", {
+              pluginId,
+              displayId,
+              enabled,
             }),
         },
         system: {

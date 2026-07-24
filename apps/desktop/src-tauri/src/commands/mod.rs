@@ -1,5 +1,6 @@
 pub mod audio;
 pub mod diagnostics;
+pub mod display;
 pub mod logs;
 pub mod permissions;
 pub mod settings;

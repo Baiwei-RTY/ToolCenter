@@ -46,6 +46,8 @@ pub fn run() {
             commands::audio::audio_default_device_get,
             commands::audio::audio_device_changes_subscribe,
             commands::audio::audio_default_device_set,
+            commands::display::display_targets_list,
+            commands::display::display_hdr_set,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run ToolCenter");
