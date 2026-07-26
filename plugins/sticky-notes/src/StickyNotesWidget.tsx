@@ -3,19 +3,16 @@ import { useState, type FormEvent } from "react";
 
 import {
   NOTE_MAX_LENGTH,
-  remainingTodoCount,
   TODO_MAX_ITEMS,
   TODO_MAX_LENGTH,
 } from "./sticky-notes-model";
 import "./styles.css";
 import { useStickyNotes } from "./use-sticky-notes";
 
-type ActivePane = "note" | "todos";
-
 export default function StickyNotesWidget({ context, widget }: WidgetProps) {
   const notes = useStickyNotes(context, widget.instanceId, widget.visible);
-  const [activePane, setActivePane] = useState<ActivePane>("note");
   const [todoDraft, setTodoDraft] = useState("");
+  const [isAddingTodo, setIsAddingTodo] = useState(false);
   const tabPrefix = `sticky-notes-${widget.instanceId}`;
 
   if (!widget.visible) {
@@ -44,12 +41,12 @@ export default function StickyNotesWidget({ context, widget }: WidgetProps) {
     );
   }
 
-  const remaining = remainingTodoCount(notes.document);
   const todoLimitReached = notes.document.todos.length >= TODO_MAX_ITEMS;
   const submitTodo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (notes.addTodoItem(todoDraft)) {
       setTodoDraft("");
+      setIsAddingTodo(false);
     }
   };
 
@@ -58,119 +55,113 @@ export default function StickyNotesWidget({ context, widget }: WidgetProps) {
       className={`plugin-sticky-notes plugin-sticky-notes--${widget.size}`}
       aria-label="桌面便签"
     >
-      <header className="plugin-sticky-notes__header">
-        <strong>桌面便签</strong>
-        <div className="plugin-sticky-notes__status" aria-live="polite">
-          {widget.locked ? <span>位置已锁定</span> : null}
-          <SaveStatus
-            status={notes.saveStatus}
-            hasError={notes.saveStatus === "error"}
-            onRetry={notes.retrySave}
-          />
-        </div>
-      </header>
+      <main className="plugin-sticky-notes__workspace">
+        <label
+          className="plugin-sticky-notes__visually-hidden"
+          htmlFor={`${tabPrefix}-note-input`}
+        >
+          便签内容
+        </label>
+        <textarea
+          id={`${tabPrefix}-note-input`}
+          className="plugin-sticky-notes__editor"
+          value={notes.document.note}
+          maxLength={NOTE_MAX_LENGTH}
+          placeholder="随手记下内容…"
+          onChange={(event) => notes.setNoteText(event.target.value)}
+          onBlur={notes.flush}
+        />
 
-      <div className="plugin-sticky-notes__tabs" role="tablist" aria-label="便签内容">
-        <button
-          id={`${tabPrefix}-note-tab`}
-          type="button"
-          role="tab"
-          aria-selected={activePane === "note"}
-          aria-controls={`${tabPrefix}-note-panel`}
-          onClick={() => setActivePane("note")}
-        >
-          便签
-        </button>
-        <button
-          id={`${tabPrefix}-todos-tab`}
-          type="button"
-          role="tab"
-          aria-selected={activePane === "todos"}
-          aria-controls={`${tabPrefix}-todos-panel`}
-          onClick={() => setActivePane("todos")}
-        >
-          待办
-          {remaining > 0 ? <span>{remaining}</span> : null}
-        </button>
-      </div>
+        {notes.document.todos.length > 0 ? (
+          <ul className="plugin-sticky-notes__checklist" aria-label="便签清单">
+            {notes.document.todos.map((todo) => (
+              <li
+                key={todo.id}
+                className={todo.completed ? "plugin-sticky-notes__item--completed" : ""}
+              >
+                <label className="plugin-sticky-notes__item-toggle">
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    aria-label={`${todo.completed ? "标记为未完成" : "标记为已完成"}：${todo.text}`}
+                    onChange={() => notes.toggleTodoItem(todo.id)}
+                  />
+                  <span>{todo.text}</span>
+                </label>
+                <button
+                  className="plugin-sticky-notes__item-delete"
+                  type="button"
+                  aria-label={`删除清单项：${todo.text}`}
+                  onClick={() => notes.removeTodoItem(todo.id)}
+                >
+                  删除
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </main>
 
-      <div className="plugin-sticky-notes__body">
-        <section
-          id={`${tabPrefix}-note-panel`}
-          className="plugin-sticky-notes__panel plugin-sticky-notes__note"
-          role="tabpanel"
-          aria-labelledby={`${tabPrefix}-note-tab`}
-          data-active={activePane === "note"}
-        >
-          <label htmlFor={`${tabPrefix}-note-input`}>便签内容</label>
-          <textarea
-            id={`${tabPrefix}-note-input`}
-            value={notes.document.note}
-            maxLength={NOTE_MAX_LENGTH}
-            placeholder="在这里随手记下内容…"
-            onChange={(event) => notes.setNoteText(event.target.value)}
-            onBlur={notes.flush}
-          />
-        </section>
-
-        <section
-          id={`${tabPrefix}-todos-panel`}
-          className="plugin-sticky-notes__panel plugin-sticky-notes__todos"
-          role="tabpanel"
-          aria-labelledby={`${tabPrefix}-todos-tab`}
-          data-active={activePane === "todos"}
-        >
-          <form className="plugin-sticky-notes__todo-form" onSubmit={submitTodo}>
-            <label htmlFor={`${tabPrefix}-todo-input`}>新增待办</label>
+      <footer className="plugin-sticky-notes__toolbar">
+        {isAddingTodo ? (
+          <form className="plugin-sticky-notes__composer" onSubmit={submitTodo}>
+            <label
+              className="plugin-sticky-notes__visually-hidden"
+              htmlFor={`${tabPrefix}-todo-input`}
+            >
+              新增清单项
+            </label>
             <input
               id={`${tabPrefix}-todo-input`}
+              autoFocus
               value={todoDraft}
               maxLength={TODO_MAX_LENGTH}
-              placeholder={todoLimitReached ? "已达到 50 项上限" : "添加一项待办"}
-              disabled={todoLimitReached}
+              placeholder="写下清单项…"
               onChange={(event) => setTodoDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  setTodoDraft("");
+                  setIsAddingTodo(false);
+                }
+              }}
             />
             <button
               type="submit"
-              disabled={todoLimitReached || todoDraft.trim().length === 0}
+              disabled={todoDraft.trim().length === 0}
             >
               添加
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTodoDraft("");
+                setIsAddingTodo(false);
+              }}
+            >
+              取消
+            </button>
           </form>
+        ) : (
+          <button
+            className="plugin-sticky-notes__add-item"
+            type="button"
+            disabled={todoLimitReached}
+            onClick={() => setIsAddingTodo(true)}
+          >
+            {todoLimitReached ? "清单已满" : "添加清单项"}
+          </button>
+        )}
 
-          {notes.document.todos.length === 0 ? (
-            <p className="plugin-sticky-notes__empty">还没有待办事项</p>
-          ) : (
-            <ul className="plugin-sticky-notes__todo-list">
-              {notes.document.todos.map((todo) => (
-                <li
-                  key={todo.id}
-                  className={todo.completed ? "plugin-sticky-notes__todo--completed" : ""}
-                >
-                  <button
-                    className="plugin-sticky-notes__todo-toggle"
-                    type="button"
-                    aria-pressed={todo.completed}
-                    aria-label={`${todo.completed ? "标记为未完成" : "标记为已完成"}：${todo.text}`}
-                    onClick={() => notes.toggleTodoItem(todo.id)}
-                  >
-                    <span className="plugin-sticky-notes__check" aria-hidden="true" />
-                    <span>{todo.text}</span>
-                  </button>
-                  <button
-                    className="plugin-sticky-notes__todo-delete"
-                    type="button"
-                    aria-label={`删除待办：${todo.text}`}
-                    onClick={() => notes.removeTodoItem(todo.id)}
-                  >
-                    删除
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+        {!isAddingTodo ? (
+          <div className="plugin-sticky-notes__status" aria-live="polite">
+            <SaveStatus
+              status={notes.saveStatus}
+              hasError={notes.saveStatus === "error"}
+              onRetry={notes.retrySave}
+            />
+          </div>
+        ) : null}
+      </footer>
 
       {notes.errorMessage && notes.saveStatus === "error" ? (
         <div className="plugin-sticky-notes__save-error" role="alert">
@@ -200,7 +191,7 @@ function SaveStatus({
 
   return (
     <span>
-      {status === "saving" ? "保存中…" : status === "saved" ? "已保存" : "本地保存"}
+      {status === "saving" ? "保存中…" : status === "saved" ? "已保存" : "本地"}
     </span>
   );
 }
