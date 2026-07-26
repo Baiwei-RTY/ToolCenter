@@ -24,6 +24,7 @@ import {
 } from "../services/widgets";
 import { Icon } from "./Icon";
 import { PluginErrorBoundary } from "./PluginErrorBoundary";
+import { shouldBeginWidgetDrag } from "./widget-drag";
 
 const widgetEntrypointMounts = new Map<string, number>();
 
@@ -194,8 +195,8 @@ function WidgetMount({
     height: `${height}px`,
   } satisfies CSSProperties;
 
-  const beginDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (instance.locked || event.button !== 0) {
+  const beginDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!shouldBeginWidgetDrag(instance.locked, event.button, event.target)) {
       return;
     }
     dragRef.current = {
@@ -208,7 +209,7 @@ function WidgetMount({
     void onFullInteraction(true).catch(reportHostError);
   };
 
-  const moveDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const moveDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
@@ -223,13 +224,15 @@ function WidgetMount({
     setDragPosition(nextPosition);
   };
 
-  const finishDrag = async (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const finishDrag = async (event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
     }
     dragRef.current = undefined;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     try {
       await widgetService.update({
         instanceId: instance.instanceId,
@@ -261,21 +264,26 @@ function WidgetMount({
       data-instance-id={instance.instanceId}
       style={style}
     >
-      <div className="widget-host__controls">
+      <div
+        className="widget-host__controls"
+        data-locked={instance.locked ? "true" : undefined}
+        title={instance.locked ? "小组件已锁定" : "按住顶部拖动小组件"}
+        onPointerDown={beginDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={(event) => void finishDrag(event)}
+        onPointerCancel={(event) => void finishDrag(event)}
+      >
         <button
           className="widget-host__drag"
           type="button"
           aria-label={instance.locked ? "小组件已锁定" : "拖动小组件"}
           disabled={instance.locked}
-          onPointerDown={beginDrag}
-          onPointerMove={moveDrag}
-          onPointerUp={(event) => void finishDrag(event)}
-          onPointerCancel={(event) => void finishDrag(event)}
         >
           <Icon name="more" />
         </button>
         <button
           type="button"
+          data-widget-host-action
           aria-label={instance.locked ? "解锁小组件" : "锁定小组件"}
           onClick={() =>
             void update({ instanceId: instance.instanceId, locked: !instance.locked })
@@ -285,6 +293,7 @@ function WidgetMount({
         </button>
         <button
           type="button"
+          data-widget-host-action
           aria-label="隐藏小组件"
           onClick={() => void update({ instanceId: instance.instanceId, visible: false })}
         >
