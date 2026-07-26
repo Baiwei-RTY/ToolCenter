@@ -47,7 +47,7 @@ DisplayConfig HDR Service
 4. 插件通过 Plugin Context 使用系统能力，Rust 对持久化和权限操作再次校验。
 5. Widget 不按实例创建 WebView。同一显示器、同一层级的多个 Widget 共享一个宿主；为了支持多显示器和每实例桌面层级，单个显示器最多存在“桌面层”和“始终置顶层”两个宿主 WebView。
 6. Widget 位置保存为显示器 ID、工作区相对坐标、缩放比例、尺寸和最后有效位置。显示器失效时迁移到主显示器；分辨率和 DPI 改变时保持相对位置并重新裁切。
-7. 透明宿主通过 Windows `SetWindowRgn` 只保留 Widget 与已声明弹层区域；拖动期间临时恢复完整窗口区域，结束后重新应用局部区域。
+7. 透明宿主通过 Windows `SetWindowRgn` 只保留 Widget 与已声明弹层区域；Widget 顶部栏除锁定、隐藏等操作按钮外均可按住拖动，锁定后禁止拖动；拖动期间临时恢复完整窗口区域，结束后重新应用局部区域。
 8. 音频查询和通知使用公开的 Windows Core Audio API。默认音频端点切换没有受支持的公开 API，因此未公开 `IPolicyConfig` 只存在于单独 Rust 兼容层，失败时返回结构化错误，不向插件暴露。
 9. HDR 使用 Windows CCD/DisplayConfig API。Windows 11 使用独立 HDR 状态，Windows 10 只在旧接口能够可靠表示 HDR 时降级；无法区分 HDR 与其他 Advanced Color 状态时返回结构化错误。Display 服务不缓存目标、不轮询，也不复用 Widget Manager 的显示器 ID。
 
