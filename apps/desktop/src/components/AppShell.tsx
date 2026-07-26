@@ -1,5 +1,5 @@
-import { Link, Outlet } from "@tanstack/react-router";
-import { Fragment, useEffect, useState } from "react";
+import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useRuntimeSnapshots } from "../hooks/use-runtime-snapshots";
 import { useAppStore } from "../stores/app-store";
@@ -27,8 +27,17 @@ export function AppShell() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen);
   const setCommandPaletteOpen = useAppStore((state) => state.setCommandPaletteOpen);
   const snapshots = useRuntimeSnapshots();
+  const location = useLocation();
+  const contentRef = useRef<HTMLElement>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarManual, setSidebarManual] = useState(false);
+
+  useLayoutEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+      contentRef.current.scrollLeft = 0;
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -165,7 +174,7 @@ export function AppShell() {
           </div>
         </footer>
       </aside>
-      <main className="content">
+      <main className="content" ref={contentRef}>
         <Outlet />
       </main>
       <LauncherPalette mode="search" />
