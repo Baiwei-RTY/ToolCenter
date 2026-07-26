@@ -2158,8 +2158,18 @@ html[data-surface="widget-host"] #root {
   gap: 3px;
   padding: 2px 5px;
   background: color-mix(in srgb, var(--color-surface-1), transparent 4%);
+  cursor: grab;
   opacity: 0;
+  touch-action: none;
   transition: opacity var(--motion-hover);
+}
+
+.widget-host__controls:active {
+  cursor: grabbing;
+}
+
+.widget-host__controls[data-locked="true"] {
+  cursor: default;
 }
 
 .widget-host__instance:focus-within .widget-host__controls,
@@ -2177,20 +2187,8 @@ html[data-surface="widget-host"] #root {
 }
 
 .widget-host__controls .widget-host__drag {
-  display: flex;
-  width: auto;
-  min-width: 0;
-  flex: 1;
-  align-items: center;
-  justify-content: flex-start;
-  margin-right: 0;
-  padding-left: 3px;
-  cursor: grab;
-  touch-action: none;
-}
-
-.widget-host__controls .widget-host__drag:active {
-  cursor: grabbing;
+  margin-right: auto;
+  cursor: inherit;
 }
 
 .widget-host__content {
