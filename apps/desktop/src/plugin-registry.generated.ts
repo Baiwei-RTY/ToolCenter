@@ -2,5 +2,7 @@
 import type { PluginDefinition } from "@tool-center/plugin-contract";
 import plugin0 from "../../../plugins/audio-device-switcher/plugin.manifest";
 import plugin1 from "../../../plugins/hdr-toggle/plugin.manifest";
+import plugin2 from "../../../plugins/pomodoro-timer/plugin.manifest";
+import plugin3 from "../../../plugins/sticky-notes/plugin.manifest";
 
-export const pluginRegistry: readonly PluginDefinition[] = [plugin0, plugin1];
+export const pluginRegistry: readonly PluginDefinition[] = [plugin0, plugin1, plugin2, plugin3];

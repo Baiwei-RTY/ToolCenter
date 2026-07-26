@@ -3,6 +3,7 @@ import type {
   WidgetDefinition,
   WidgetDisplayMode,
   WidgetEntrypointModule,
+  WidgetSize,
 } from "@tool-center/plugin-contract";
 import {
   type CSSProperties,
@@ -24,12 +25,37 @@ import {
 } from "../services/widgets";
 import { Icon } from "./Icon";
 import { PluginErrorBoundary } from "./PluginErrorBoundary";
+import {
+  normalizedPositionForRect,
+  type ResizeDirection,
+  resizeWidgetRect,
+  type WidgetRect,
+  widgetSizeForDimensions,
+} from "./widget-geometry";
+import { shouldBeginWidgetDrag } from "./widget-drag";
 
 const widgetEntrypointMounts = new Map<string, number>();
+const resizeDirections: readonly ResizeDirection[] = [
+  "n",
+  "ne",
+  "e",
+  "se",
+  "s",
+  "sw",
+  "w",
+  "nw",
+];
+const maximumWidgetWidth = 1600;
+const maximumWidgetHeight = 1200;
 
 interface WidgetHostSurfaceProps {
   readonly monitorId: string;
   readonly displayMode: WidgetDisplayMode;
+}
+
+interface ResizePreview {
+  readonly rect: WidgetRect;
+  readonly size: WidgetSize;
 }
 
 export function WidgetHostSurface({ monitorId, displayMode }: WidgetHostSurfaceProps) {
@@ -142,12 +168,27 @@ function WidgetMount({
   }>();
   const [loadError, setLoadError] = useState<string>();
   const [dragPosition, setDragPosition] = useState<NormalizedPosition | undefined>(undefined);
+  const [resizePreview, setResizePreview] = useState<ResizePreview | undefined>(undefined);
   const dragPositionRef = useRef<NormalizedPosition | undefined>(undefined);
+  const resizePreviewRef = useRef<ResizePreview | undefined>(undefined);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
     startY: number;
     position: NormalizedPosition;
+  } | undefined>(undefined);
+  const resizeRef = useRef<{
+    pointerId: number;
+    direction: ResizeDirection;
+    startX: number;
+    startY: number;
+    rect: WidgetRect;
+    minimum: {
+      readonly width: number;
+      readonly height: number;
+    };
+    supportedSizes: readonly WidgetSize[];
+    fallbackSize: WidgetSize;
   } | undefined>(undefined);
 
   useEffect(() => {
@@ -185,17 +226,29 @@ function WidgetMount({
 
   const position = dragPosition ?? instance.position;
 
-  const width = Math.min(instance.dimensions.width, window.innerWidth);
-  const height = Math.min(instance.dimensions.height, window.innerHeight);
+  const baseWidth = Math.min(instance.dimensions.width, window.innerWidth);
+  const baseHeight = Math.min(instance.dimensions.height, window.innerHeight);
+  const rect = resizePreview?.rect ?? {
+    left: position.x * Math.max(0, window.innerWidth - baseWidth),
+    top: position.y * Math.max(0, window.innerHeight - baseHeight),
+    width: baseWidth,
+    height: baseHeight,
+  };
+  const width = rect.width;
+  const height = rect.height;
+  const responsiveSize = resizePreview?.size ?? instance.size;
   const style = {
-    left: `${position.x * Math.max(0, window.innerWidth - width)}px`,
-    top: `${position.y * Math.max(0, window.innerHeight - height)}px`,
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
     width: `${width}px`,
     height: `${height}px`,
   } satisfies CSSProperties;
 
-  const beginDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (instance.locked || event.button !== 0) {
+  const beginDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (
+      resizeRef.current ||
+      !shouldBeginWidgetDrag(instance.locked, event.button, event.target)
+    ) {
       return;
     }
     dragRef.current = {
@@ -208,7 +261,7 @@ function WidgetMount({
     void onFullInteraction(true).catch(reportHostError);
   };
 
-  const moveDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const moveDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
@@ -223,13 +276,15 @@ function WidgetMount({
     setDragPosition(nextPosition);
   };
 
-  const finishDrag = async (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const finishDrag = async (event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
     }
     dragRef.current = undefined;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     try {
       await widgetService.update({
         instanceId: instance.instanceId,
@@ -241,6 +296,99 @@ function WidgetMount({
     } finally {
       dragPositionRef.current = undefined;
       setDragPosition(undefined);
+      await onFullInteraction(false).catch(reportHostError);
+    }
+  };
+
+  const beginResize = (
+    direction: ResizeDirection,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    const definition = activeWidget?.definition;
+    if (instance.locked || event.button !== 0 || dragRef.current || !definition) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    resizeRef.current = {
+      pointerId: event.pointerId,
+      direction,
+      startX: event.clientX,
+      startY: event.clientY,
+      rect,
+      minimum: definition.minimumSize,
+      supportedSizes: definition.supportedSizes,
+      fallbackSize: instance.size,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    void onFullInteraction(true).catch(reportHostError);
+  };
+
+  const moveResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) {
+      return;
+    }
+    const nextRect = resizeWidgetRect(
+      resize.rect,
+      resize.direction,
+      event.clientX - resize.startX,
+      event.clientY - resize.startY,
+      {
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        minimumWidth: resize.minimum.width,
+        minimumHeight: resize.minimum.height,
+        maximumWidth: maximumWidgetWidth,
+        maximumHeight: maximumWidgetHeight,
+      },
+    );
+    const nextPreview = {
+      rect: nextRect,
+      size: widgetSizeForDimensions(
+        nextRect,
+        resize.supportedSizes,
+        resize.minimum,
+        resize.fallbackSize,
+      ),
+    } satisfies ResizePreview;
+    resizePreviewRef.current = nextPreview;
+    setResizePreview(nextPreview);
+  };
+
+  const finishResize = async (event: ReactPointerEvent<HTMLDivElement>) => {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) {
+      return;
+    }
+    resizeRef.current = undefined;
+    event.stopPropagation();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    try {
+      const preview = resizePreviewRef.current;
+      if (preview) {
+        await widgetService.update({
+          instanceId: instance.instanceId,
+          size: preview.size,
+          dimensions: {
+            width: preview.rect.width,
+            height: preview.rect.height,
+          },
+          position: normalizedPositionForRect(
+            preview.rect,
+            window.innerWidth,
+            window.innerHeight,
+          ),
+        });
+        await onChanged();
+      }
+    } catch (error) {
+      reportHostError(error);
+    } finally {
+      resizePreviewRef.current = undefined;
+      setResizePreview(undefined);
       await onFullInteraction(false).catch(reportHostError);
     }
   };
@@ -259,23 +407,29 @@ function WidgetMount({
       className="widget-host__instance"
       data-toolcenter-widget-region
       data-instance-id={instance.instanceId}
+      data-resizing={resizePreview ? "" : undefined}
       style={style}
     >
-      <div className="widget-host__controls">
+      <div
+        className="widget-host__controls"
+        data-locked={instance.locked ? "true" : undefined}
+        title={instance.locked ? "小组件已锁定" : "按住顶部拖动小组件"}
+        onPointerDown={beginDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={(event) => void finishDrag(event)}
+        onPointerCancel={(event) => void finishDrag(event)}
+      >
         <button
           className="widget-host__drag"
           type="button"
           aria-label={instance.locked ? "小组件已锁定" : "拖动小组件"}
           disabled={instance.locked}
-          onPointerDown={beginDrag}
-          onPointerMove={moveDrag}
-          onPointerUp={(event) => void finishDrag(event)}
-          onPointerCancel={(event) => void finishDrag(event)}
         >
           <Icon name="more" />
         </button>
         <button
           type="button"
+          data-widget-host-action
           aria-label={instance.locked ? "解锁小组件" : "锁定小组件"}
           onClick={() =>
             void update({ instanceId: instance.instanceId, locked: !instance.locked })
@@ -285,6 +439,7 @@ function WidgetMount({
         </button>
         <button
           type="button"
+          data-widget-host-action
           aria-label="隐藏小组件"
           onClick={() => void update({ instanceId: instance.instanceId, visible: false })}
         >
@@ -304,7 +459,7 @@ function WidgetMount({
               widget={{
                 instanceId: instance.instanceId,
                 locked: instance.locked,
-                size: instance.size,
+                size: responsiveSize,
                 visible: instance.visible,
               }}
             />
@@ -313,6 +468,20 @@ function WidgetMount({
           <div className="widget-host__loading" role="status">正在加载小组件…</div>
         )}
       </div>
+      {!instance.locked && activeWidget
+        ? resizeDirections.map((direction) => (
+            <div
+              aria-hidden="true"
+              className={`widget-host__resize-zone widget-host__resize-zone--${direction}`}
+              data-resize-direction={direction}
+              key={direction}
+              onPointerDown={(event) => beginResize(direction, event)}
+              onPointerMove={moveResize}
+              onPointerUp={(event) => void finishResize(event)}
+              onPointerCancel={(event) => void finishResize(event)}
+            />
+          ))
+        : null}
     </section>
   );
 }

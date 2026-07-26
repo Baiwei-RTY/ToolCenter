@@ -2151,14 +2151,25 @@ html[data-surface="widget-host"] #root {
 }
 
 .widget-host__controls {
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 3px;
   padding: 2px 5px;
   background: color-mix(in srgb, var(--color-surface-1), transparent 4%);
+  cursor: grab;
   opacity: 0;
+  touch-action: none;
   transition: opacity var(--motion-hover);
+}
+
+.widget-host__controls:active {
+  cursor: grabbing;
+}
+
+.widget-host__controls[data-locked="true"] {
+  cursor: default;
 }
 
 .widget-host__instance:focus-within .widget-host__controls,
@@ -2177,12 +2188,7 @@ html[data-surface="widget-host"] #root {
 
 .widget-host__controls .widget-host__drag {
   margin-right: auto;
-  cursor: grab;
-  touch-action: none;
-}
-
-.widget-host__controls .widget-host__drag:active {
-  cursor: grabbing;
+  cursor: inherit;
 }
 
 .widget-host__content {
@@ -2194,6 +2200,73 @@ html[data-surface="widget-host"] #root {
 .widget-host__content > * {
   width: 100%;
   height: 100%;
+}
+
+.widget-host__resize-zone {
+  position: absolute;
+  z-index: 4;
+  background: transparent;
+  touch-action: none;
+}
+
+.widget-host__resize-zone--n,
+.widget-host__resize-zone--s {
+  right: 12px;
+  left: 12px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.widget-host__resize-zone--n { top: 0; }
+.widget-host__resize-zone--s { bottom: 0; }
+
+.widget-host__resize-zone--e,
+.widget-host__resize-zone--w {
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.widget-host__resize-zone--e { right: 0; }
+.widget-host__resize-zone--w { left: 0; }
+
+.widget-host__resize-zone--ne,
+.widget-host__resize-zone--se,
+.widget-host__resize-zone--sw,
+.widget-host__resize-zone--nw {
+  z-index: 5;
+  width: 12px;
+  height: 12px;
+}
+
+.widget-host__resize-zone--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.widget-host__resize-zone--se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.widget-host__resize-zone--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.widget-host__resize-zone--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.widget-host__instance[data-resizing] {
+  outline: 2px solid color-mix(in srgb, var(--color-primary), transparent 35%);
+  outline-offset: -2px;
 }
 
 .widget-host__error,
