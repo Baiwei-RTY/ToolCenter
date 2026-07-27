@@ -10,6 +10,7 @@ Tauri Core
 ├─ 权限记录和二次校验
 ├─ 日志与诊断
 ├─ Widget 实例、显示器和透明窗口区域管理
+├─ Windows 凭据管理器与受控 HTTPS GET 服务
 ├─ Windows Core Audio 服务
 └─ Windows DisplayConfig HDR 服务
 
@@ -37,6 +38,13 @@ DisplayConfig HDR Service
 ├─ 使用独立不透明 ID 标识 HDR 控制目标
 ├─ display.read / display.control 命令级权限校验
 └─ 写入前重新验证目标，写入后重新读取真实状态
+
+Credential / HTTPS Service
+├─ 按插件 ID 和逻辑 key 隔离 Windows 通用凭据
+├─ 前端只可写入、检查存在和删除，不能读取明文
+├─ network.request 在 Rust 命令层再次校验
+├─ 允许免凭据公开请求或由 Rust 注入安全凭据
+└─ 仅允许公开域名的 HTTPS GET，并限制端口、重定向、超时和响应大小
 ```
 
 ## 关键决策
@@ -50,6 +58,7 @@ DisplayConfig HDR Service
 7. 透明宿主通过 Windows `SetWindowRgn` 只保留 Widget 与已声明弹层区域；Widget 顶部栏除锁定、隐藏等操作按钮外均可按住拖动，锁定后禁止拖动；拖动期间临时恢复完整窗口区域，结束后重新应用局部区域。
 8. 音频查询和通知使用公开的 Windows Core Audio API。默认音频端点切换没有受支持的公开 API，因此未公开 `IPolicyConfig` 只存在于单独 Rust 兼容层，失败时返回结构化错误，不向插件暴露。
 9. HDR 使用 Windows CCD/DisplayConfig API。Windows 11 使用独立 HDR 状态，Windows 10 只在旧接口能够可靠表示 HDR 时降级；无法区分 HDR 与其他 Advanced Color 状态时返回结构化错误。Display 服务不缓存目标、不轮询，也不复用 Widget Manager 的显示器 ID。
+10. 敏感 API Key 不进入插件 JSON。插件通过 `context.credentials` 保存逻辑凭据引用，请求时由 `context.network` 对应的 Rust 服务读取并注入 Authorization 头；插件 JavaScript 和日志都不接收明文回读。
 
 ## 持久化位置
 
@@ -57,5 +66,6 @@ DisplayConfig HDR Service
 - 插件权限：应用配置目录下 `app/permissions.json`；
 - Widget 实例：应用配置目录下 `app/widgets.json`；
 - 插件业务数据：应用配置目录下按插件 ID 隔离。
+- 插件敏感凭据：Windows 凭据管理器中按 `ToolCenter/<pluginId>/<key>` 隔离。
 
 以上路径由 Tauri 运行时解析，文档和插件不得硬编码用户本地绝对路径。

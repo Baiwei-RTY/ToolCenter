@@ -78,3 +78,57 @@ result: passed
 - 为避免未经确认改变用户当前系统设置，本轮没有在真实硬件上执行默认输出切换；正式切换路径已由单元测试确认一次调用同时传入 `console`、`multimedia`、`communications` 三种角色。
 
 final result: passed
+
+---
+
+# 市场行情插件视觉验收
+
+## 验收对象
+
+- 设计来源：对话内确认的市场行情视觉方案；公开仓库不提交原始参考图
+- 实现截图：`design-qa-artifacts/market-watch-implementation.png`
+- 并排对照：`design-qa-artifacts/market-watch-comparison.png`
+- K 线证据：`design-qa-artifacts/market-watch-kline.png`
+- 设置页证据：`design-qa-artifacts/market-watch-settings-page.png`
+- 响应式证据：`design-qa-artifacts/market-watch-medium-full.png`、`design-qa-artifacts/market-watch-small-full.png`
+- 视口：Wide 520×220；同时复核 Medium 360×220、Small 260×160
+- 密度：Windows 逻辑像素 1×，截图保持 CSS 尺寸
+- 状态：AAPL、1 日、折线、可见、未锁定；浏览器模式使用明确标注的确定性演示数据
+
+## 对照结论
+
+- 信息结构与确认稿一致：左侧产品选择、价格、涨跌和状态；右侧图表类型、时间范围、刷新和价格图。
+- Wide 左右比例、分隔线、圆角、边框、分段控件、主价格层级、绿色上涨语义和蓝紫色图表已对齐 ToolCenter Light UI Kit。
+- 折线图与 K 线图均由真实 OHLC 数据结构渲染；“折线 / K 线”和“1 日 / 5 日 / 1 月”均已实际点击验证。
+- 产品下拉已依次验证 AAPL、MSFT、EUR/USD 与 BTCUSDT；价格精度、涨跌方向、数据源标签和图表路径均随产品更新。5 日按钮状态与数据点数量同步更新。
+- Medium 与 Small 的 `scrollWidth/clientWidth`、`scrollHeight/clientHeight` 均相等，无横向滚动、纵向溢出或控件裁切。
+- 设置页使用现有页面 Shell 和 Design Tokens，API Key、权限、自选产品、默认产品和免责声明的层级清晰。
+- 浏览器控制台最终无 warning/error。
+
+## 修正记录
+
+1. P1：Wide 主价格在收窄左栏后发生省略；已调整左栏安全间距和数字字号，`213.87 USD` 完整显示。
+2. P2：演示时间最初按 UTC 偏移为 17:30–23:48；已改为本地交易时段，显示 09:30–15:48。
+3. P2：Small 同时显示绝对涨幅和百分比时信息拥挤；已在 Small 保留百分比，在 Medium/Wide 保留两项。
+4. P2：趋势方向只靠颜色表达；已加入“涨 / 跌”文本徽标，同时保留正负号和数值。
+5. P1：BTCUSDT 的五位数价格与货币单位在 Wide 左栏发生省略；已按格式化价格长度降低数字字号，桌面壳复查可完整显示 `65,380.10 USDT`。
+6. 未解决 P0/P1/P2：无。
+
+## 功能与无障碍
+
+- 产品选择使用原生 `select`；图表和时间范围使用具备 `aria-pressed` 的按钮组。
+- 图表提供可访问名称，K 线节点包含开、高、低、收文本；刷新按钮具有明确名称。
+- 权限申请、拒绝、未配置、空数据、不可用、错误、加载和成功状态均有文字说明和恢复入口。
+- Reduced Motion 下关闭骨架动画；焦点轮廓使用共享 `--color-focus`。
+- Widget 隐藏时不执行网络读取，周期任务由共享 Scheduler 管理并在卸载时释放。
+
+## 公开数据源回归
+
+- 设置页已加入 Twelve Data 公开演示与 Binance USDⓈ-M 免费期货说明，Wide 页面无横向溢出。
+- 真实 Tauri 桌面壳已验证 `network.request` 权限与公开连接：AAPL 返回 `333.07 USD`（Twelve Data 公开演示），BTCUSDT 返回约 `65,400 USDT`（Binance USDⓈ-M，数值会随市场变化）。
+- AAPL 与 BTCUSDT 的最新价、数据时间、数据源标签和折线形状均不同，确认产品切换不再复用同一条演示曲线。
+- 小组件自选列表已显示 `BTCUSDT · 比特币永续`；折线图与 K 线图在浏览器真实组件中均完成点击回归，桌面 Widget Host 中完成真实行情与长价格布局复查。
+- 刷新失败时保留最后成功快照并显示“离线缓存”；正常读取时显示“在线”。
+- 更新后浏览器控制台无 warning/error，原 520×220 小组件视觉结构未变化。
+
+final result: passed
