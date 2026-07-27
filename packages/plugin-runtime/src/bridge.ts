@@ -22,6 +22,7 @@ export function isTauriHost(): boolean {
 
 export class MemoryHostBridge implements HostBridge {
   readonly #storage = new Map<string, unknown>();
+  readonly #credentials = new Set<string>();
   readonly #permissions = new Map<string, string>();
   readonly #logs: unknown[] = [];
   readonly #eventListeners = new Map<string, Set<(payload: unknown) => void>>();
@@ -65,6 +66,16 @@ export class MemoryHostBridge implements HostBridge {
         return [...this.#storage.keys()]
           .filter((entry) => entry.startsWith(`${pluginId}:`))
           .map((entry) => entry.slice(pluginId.length + 1)) as TResult;
+      case "plugin_credential_set":
+        this.#credentials.add(`${pluginId}:${key}`);
+        return undefined as TResult;
+      case "plugin_credential_has":
+        return this.#credentials.has(`${pluginId}:${key}`) as TResult;
+      case "plugin_credential_remove":
+        this.#credentials.delete(`${pluginId}:${key}`);
+        return undefined as TResult;
+      case "network_get_json":
+        throw new Error("NetworkService is not available in browser mode.");
       case "permission_status":
         return (this.#permissions.get(`${pluginId}:${String(payload.permission ?? "")}`) ??
           "prompt") as TResult;

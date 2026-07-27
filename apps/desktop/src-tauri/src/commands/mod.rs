@@ -1,7 +1,9 @@
 pub mod audio;
+pub mod credentials;
 pub mod diagnostics;
 pub mod display;
 pub mod logs;
+pub mod network;
 pub mod permissions;
 pub mod settings;
 pub mod storage;

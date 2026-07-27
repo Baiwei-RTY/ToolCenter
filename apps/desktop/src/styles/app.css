@@ -128,6 +128,8 @@ button:disabled {
 }
 
 .app-shell {
+  position: fixed;
+  inset: 0;
   display: grid;
   width: 100%;
   height: 100%;
