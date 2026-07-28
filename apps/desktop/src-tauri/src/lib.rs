@@ -6,6 +6,7 @@ mod state;
 use tauri::Manager;
 
 use services::audio::AudioState;
+use services::network::NetworkState;
 use services::widgets::WidgetHostState;
 use state::CoreState;
 
@@ -18,6 +19,7 @@ pub fn run() {
             app.manage(CoreState::new(app_directory));
             app.manage(WidgetHostState::new());
             app.manage(AudioState::new());
+            app.manage(NetworkState::new()?);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -27,6 +29,9 @@ pub fn run() {
             commands::storage::plugin_storage_write,
             commands::storage::plugin_storage_remove,
             commands::storage::plugin_storage_list,
+            commands::credentials::plugin_credential_set,
+            commands::credentials::plugin_credential_has,
+            commands::credentials::plugin_credential_remove,
             commands::permissions::permission_status,
             commands::permissions::permission_set,
             commands::permissions::permissions_list,
@@ -48,6 +53,7 @@ pub fn run() {
             commands::audio::audio_default_device_set,
             commands::display::display_targets_list,
             commands::display::display_hdr_set,
+            commands::network::network_get_json,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run ToolCenter");

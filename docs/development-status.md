@@ -21,6 +21,9 @@
 - `display.read` 与 `display.control` 的 Rust 命令级独立校验、不透明显示器 ID、写入前重验和写入后状态核对；
 - 在当前 Windows 电脑上完成 DisplayConfig 活动目标和 HDR 状态的真实只读查询（未改变 HDR 设置）；
 - 内置 `toolcenter.hdr-toggle` Widget 已接入插件中心，支持选择目标显示器、读取 HDR 状态以及按实例保存选择；
+- `PluginContext.credentials` 已接入 Windows 凭据管理器，只提供写入、存在性检查与删除，前端无法读回明文；
+- `PluginContext.network` 已接入共享 Rust HTTPS GET 服务，包含 `network.request` 二次校验、凭据头注入、超时、响应上限和本地目标拦截；
+- 内置 `toolcenter.market-watch` Page + Widget 已接入插件中心，支持 Twelve Data 免费行情、Binance 公共数字资产期货、自选产品、60 秒可见刷新、折线 / K 线和 1 日 / 5 日 / 1 月切换；
 - 已接入视觉交接 v1.0.2 的正式应用图标；
 - 已建立固定 `正式版/ToolCenter.exe` 输出，以及插件直接进入真实 ToolCenter 桌面壳的开发命令。
 

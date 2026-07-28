@@ -138,6 +138,28 @@ export interface DisplayService {
   setHdrEnabled(displayId: string, enabled: boolean): Promise<void>;
 }
 
+export interface CredentialService {
+  set(key: string, value: string): Promise<void>;
+  has(key: string): Promise<boolean>;
+  remove(key: string): Promise<void>;
+}
+
+export type NetworkAuthorizationScheme = "apikey" | "Bearer";
+
+export interface NetworkAuthorization {
+  readonly credentialKey: string;
+  readonly scheme: NetworkAuthorizationScheme;
+}
+
+export interface NetworkJsonRequest {
+  readonly url: string;
+  readonly authorization?: NetworkAuthorization;
+}
+
+export interface NetworkService {
+  getJson<T>(request: NetworkJsonRequest): Promise<T>;
+}
+
 export interface SystemSummary {
   readonly platform: string;
   readonly architecture: string;
@@ -193,6 +215,8 @@ export interface PluginContext {
   readonly hotkeys: HotkeyService;
   readonly audio: AudioService;
   readonly display: DisplayService;
+  readonly credentials: CredentialService;
+  readonly network: NetworkService;
   readonly system: SystemService;
   readonly tasks: TaskService;
   readonly permissions: PermissionService;

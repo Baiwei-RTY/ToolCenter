@@ -155,6 +155,27 @@ export function createPluginContextFactory(options: HostContextOptions): PluginC
               enabled,
             }),
         },
+        credentials: {
+          set: (key, value) =>
+            bridge.invoke<void>("plugin_credential_set", { pluginId, key, value }),
+          has: (key) =>
+            bridge.invoke<boolean>("plugin_credential_has", { pluginId, key }),
+          remove: (key) =>
+            bridge.invoke<void>("plugin_credential_remove", { pluginId, key }),
+        },
+        network: {
+          getJson: <T>(request: {
+            readonly url: string;
+            readonly authorization?: {
+              readonly credentialKey: string;
+              readonly scheme: "apikey" | "Bearer";
+            };
+          }) =>
+            bridge.invoke<T>("network_get_json", {
+              pluginId,
+              request,
+            }),
+        },
         system: {
           getSummary: () => bridge.invoke<SystemSummary>("diagnostics_get"),
         },
