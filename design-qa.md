@@ -1,5 +1,46 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：Material 3 插件中心正式接入
+
+### 验收基线
+
+- 设计来源：`视觉稿件/ToolCenter-Material3-第二套紫色变体-v5/01.png`；
+- 实现页面：`/tools`，浅色主题，市场行情插件选中，全部插件处于启用状态；
+- 精确对照视口：1487×1058 CSS px，设备像素比 1；设计稿与实现截图均为 1487×1058 px；
+- 完整同画布对照：`design-qa-artifacts/material3-plugin-center-comparison-full.png`；
+- 标题栏、导航栏和插件列表局部对照：`design-qa-artifacts/material3-plugin-center-comparison-shell.png`；
+- 实现截图：`design-qa-artifacts/material3-plugin-center-implementation-1487x1058.png`；
+- 响应式复核：`design-qa-artifacts/material3-plugin-center-responsive-1280x720.png` 与 `design-qa-artifacts/material3-plugin-center-responsive-1024x720.png`，均无横向溢出或控件遮挡。
+
+### 实现与设计对照
+
+- 排版：标题栏、112 px 导航轨、424 px 插件主列表、详情头部、页签、内容和底部状态栏的分区边界与设计稿对齐；字体采用系统 UI 字体栈，字重存在不影响使用的 P3 级细微差异；
+- 色彩：主色、容器色、描边、成功状态和悬停/选中状态均由 Material 3 Design Tokens 驱动，紫色系与设计稿一致；
+- 图标：界面使用 `@mdui/icons` 的正式 Material 图标，不使用临时字符图标；设计稿中的品牌盾牌采用最接近的正式 Material 图标表达，属于可接受的 P3 差异；
+- 内容：设计稿中的行情图表仅作为插件业务示意。正式插件中心改为展示真实清单、入口、运行时、权限、存储和实例信息，避免把市场行情业务复制进启动器；点击“打开页面”仍进入原有插件页面；
+- 架构：保持单窗口、单 WebView；插件入口继续懒加载；启动器只通过现有运行时和 Rust 权限桥接能力工作，没有导入插件内部源码，也没有修改 `plugins/*`。
+
+### 交互验证
+
+- 选择插件、全部/页面/小组件/已启用筛选、搜索与清空均通过；
+- 插件启用/停用真实写入应用状态并调用运行时，验证后已恢复启用状态；
+- Page 插件可进入原有插件页面，Widget 插件可进入桌面实例页，Service 可进入运行状态页；
+- 内容、权限、存储和诊断页签可读取真实数据；权限修改沿用现有确认对话框与 Rust 二次校验；
+- 启动器路由计算值为 `--color-primary: #6750a4`，原插件页面容器计算值仍为 `#5b5fc7`，Widget Host 同样保留旧令牌；
+- 浏览器控制台无 error；仅开发模式出现 Lit 的开发构建提示，生产构建不包含该提示。
+
+### 修正记录
+
+- 第 1 轮：发现旧样式使概览卡片跨越全部网格列，导致摘要区堆叠；已限定当前插件中心网格作用域；
+- 第 2 轮：发现详情头部/底栏比例与设计稿有偏差且内容多出 22 px；已校准行高并仅展示非零贡献类型；
+- 最终复核：内容区 `scrollHeight` 与 `clientHeight` 均为 621 px，1487×1058 下无非预期溢出。
+
+**当前验收结果：passed**
+
+---
+
+## 历史验收：Light UI Kit 首轮实现
+
 ## 验收范围
 
 - 设计来源：`设计交接/02-即时设计导出/PNG/` 的 11 张 1440×900 画板；

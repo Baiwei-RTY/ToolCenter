@@ -2,7 +2,7 @@
 
 ToolCenter 是一个面向 Windows 10/11 的轻量化桌面工具启动器。项目采用 Tauri 2、React 19、TypeScript、Vite、pnpm workspace 与 Cargo workspace。
 
-当前版本包含启动器本体、插件平台能力，以及随源码构建并通过校验的第一方插件；插件业务保持在各自 `plugins/<plugin-name>/` 中，不写入启动器公共层。桌面端视觉已经按照 `设计交接` 中的 Light UI Kit、页面画板和 Design Tokens 完成首轮实现。
+当前版本包含启动器本体、插件平台能力，以及随源码构建并通过校验的第一方插件；插件业务保持在各自 `plugins/<plugin-name>/` 中，不写入启动器公共层。桌面端主框架与插件中心已经按确认的紫色 Material 3 视觉稿重构，并使用 MDUI 2 与官方 Material 图标；插件自身业务界面保持现状。
 
 ## 当前功能范围
 
@@ -18,6 +18,7 @@ ToolCenter 是一个面向 Windows 10/11 的轻量化桌面工具启动器。项
 - 通用只读 HTTPS 请求服务与 Windows 凭据管理器服务，敏感凭据不会返回插件前端；
 - 内置 HDR 开关 Widget，可选择目标显示器并通过受权限保护的宿主能力切换 HDR；
 - 内置市场行情 Page + Widget，支持 Twelve Data 免费行情与 Binance 公共数字资产期货、自选产品，以及折线 / K 线切换；
+- 紫色 Material 3 主框架与插件中心，可直接读取插件清单、启停状态、入口、权限、隔离存储和诊断数据；
 - 概览、工具、插件管理、运行状态、设置、全局浮层和状态组件的正式界面；
 - 插件创建、注册表生成和规则校验工具。
 
@@ -111,6 +112,6 @@ cmd /c cargo --version
 
 ## 开源许可
 
-ToolCenter 源代码采用 [MIT License](LICENSE) 开放。音频设备切换、HDR 开关和市场行情插件使用的部分 SVG 图标来自 Google Material Symbols，按 Apache License 2.0 使用，详情见 [第三方许可证与处理说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)。
+ToolCenter 源代码采用 [MIT License](LICENSE) 开放。启动器界面使用 MDUI 2 与 `@mdui/icons`，按 MIT License 使用，详情见 [MDUI 第三方许可说明](THIRD_PARTY_NOTICES/MDUI/NOTICE.md)。音频设备切换、HDR 开关和市场行情插件使用的部分 SVG 图标来自 Google Material Symbols，按 Apache License 2.0 使用，详情见 [Material Symbols 第三方许可说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)。
 
 本地设计交接包、原始参考截图、构建产物和便携式 EXE 不进入源码仓库。可执行文件应通过 GitHub Releases 独立发布。

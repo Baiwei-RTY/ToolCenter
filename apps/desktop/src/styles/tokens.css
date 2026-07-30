@@ -1,39 +1,39 @@
 :root {
   color-scheme: light;
-  --color-bg: #f8f7fc;
+  --color-bg: #fffbff;
   --color-surface: #fffbff;
-  --color-surface-1: #f4f1f8;
-  --color-surface-2: #eeeaf3;
-  --color-surface-3: #e8e4ee;
-  --color-primary: #5b5fc7;
-  --color-primary-hover: #5054b7;
-  --color-primary-pressed: #44489f;
-  --color-primary-container: #e3e2ff;
-  --color-on-primary-container: #292a78;
+  --color-surface-1: #f7f2fa;
+  --color-surface-2: #f1ecf4;
+  --color-surface-3: #e9e3ec;
+  --color-primary: #6750a4;
+  --color-primary-hover: #5d469a;
+  --color-primary-pressed: #513b8e;
+  --color-primary-container: #eaddff;
+  --color-on-primary-container: #21005d;
   --color-text-primary: #1c1b20;
   --color-text-secondary: #49454f;
   --color-text-muted: #79747e;
   --color-text-disabled: #aaa5af;
-  --color-success: #2e7d5b;
-  --color-success-container: #dff3e8;
+  --color-success: #1b6d32;
+  --color-success-container: #d8f8dc;
   --color-warning: #9a6700;
   --color-warning-container: #fff0c7;
   --color-error: #ba1a1a;
   --color-error-container: #ffdad6;
-  --color-info: #4267b2;
-  --color-info-container: #dce7ff;
-  --color-divider: #e2dee7;
-  --color-outline: #cbc5d0;
-  --color-focus: #5b5fc7;
+  --color-info: #5a4294;
+  --color-info-container: #eaddff;
+  --color-divider: #e7e0e8;
+  --color-outline: #cac4d0;
+  --color-focus: #6750a4;
   --color-overlay: rgb(28 27 32 / 48%);
   --shadow-overlay: 0 12px 36px rgb(28 27 32 / 16%);
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-menu: 12px;
-  --radius-card: 14px;
-  --radius-container: 18px;
-  --radius-dialog: 20px;
-  --radius-overlay: 24px;
+  --radius-card: 16px;
+  --radius-container: 20px;
+  --radius-dialog: 24px;
+  --radius-overlay: 28px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -46,11 +46,20 @@
   --motion-menu: 180ms;
   --motion-dialog: 220ms;
   --motion-page: 250ms;
-  --sidebar-expanded: 220px;
-  --sidebar-collapsed: 72px;
-  --titlebar-height: 48px;
+  --sidebar-expanded: 112px;
+  --sidebar-collapsed: 112px;
+  --titlebar-height: 82px;
   --content-padding: 32px;
   --density-row: 52px;
+  --tool-pane-width: 424px;
+  --mdui-color-primary: 103 80 164;
+  --mdui-color-on-primary: 255 255 255;
+  --mdui-color-primary-container: 234 221 255;
+  --mdui-color-on-primary-container: 33 0 93;
+  --mdui-color-surface: 255 251 255;
+  --mdui-color-surface-container: 247 242 250;
+  --mdui-color-outline: 121 116 126;
+  --mdui-color-outline-variant: 202 196 208;
 }
 
 :root[data-theme="dark"] {
@@ -60,11 +69,11 @@
   --color-surface-1: #252329;
   --color-surface-2: #302d35;
   --color-surface-3: #39363e;
-  --color-primary: #c2c1ff;
-  --color-primary-hover: #d0cfff;
-  --color-primary-pressed: #aaa9e9;
-  --color-primary-container: #3f427e;
-  --color-on-primary-container: #e3e2ff;
+  --color-primary: #d0bcff;
+  --color-primary-hover: #ddcaff;
+  --color-primary-pressed: #bba6ec;
+  --color-primary-container: #4f378b;
+  --color-on-primary-container: #eaddff;
   --color-text-primary: #e7e1e9;
   --color-text-secondary: #cac4cf;
   --color-text-muted: #aaa3ad;
@@ -73,6 +82,48 @@
   --color-outline: #625c66;
   --color-overlay: rgb(0 0 0 / 64%);
   --shadow-overlay: 0 14px 40px rgb(0 0 0 / 34%);
+  --mdui-color-primary: 208 188 255;
+  --mdui-color-on-primary: 56 30 114;
+  --mdui-color-primary-container: 79 55 139;
+  --mdui-color-on-primary-container: 234 221 255;
+  --mdui-color-surface: 29 27 32;
+  --mdui-color-surface-container: 37 35 41;
+  --mdui-color-outline: 147 143 153;
+  --mdui-color-outline-variant: 73 69 79;
+}
+
+.plugin-content-shell,
+:root[data-surface="widget-host"] {
+  --color-bg: #f8f7fc;
+  --color-surface: #fffbff;
+  --color-surface-1: #f4f1f8;
+  --color-surface-2: #eeeaf3;
+  --color-surface-3: #e8e4ee;
+  --color-primary: #5b5fc7;
+  --color-primary-hover: #5054b7;
+  --color-primary-pressed: #44489f;
+  --color-primary-container: #e3e2ff;
+  --color-on-primary-container: #292a78;
+  --color-success: #2e7d5b;
+  --color-success-container: #dff3e8;
+  --color-info: #4267b2;
+  --color-info-container: #dce7ff;
+  --color-divider: #e2dee7;
+  --color-outline: #cbc5d0;
+  --color-focus: #5b5fc7;
+  --radius-card: 14px;
+  --radius-container: 18px;
+  --radius-dialog: 20px;
+  --radius-overlay: 24px;
+}
+
+:root[data-theme="dark"] .plugin-content-shell,
+:root[data-theme="dark"][data-surface="widget-host"] {
+  --color-primary: #c2c1ff;
+  --color-primary-hover: #d0cfff;
+  --color-primary-pressed: #aaa9e9;
+  --color-primary-container: #3f427e;
+  --color-on-primary-container: #e3e2ff;
 }
 
 :root[data-density="compact"] {

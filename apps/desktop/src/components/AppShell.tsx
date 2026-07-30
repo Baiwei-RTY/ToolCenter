@@ -1,7 +1,6 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
-import { useRuntimeSnapshots } from "../hooks/use-runtime-snapshots";
 import { useAppStore } from "../stores/app-store";
 import { Icon } from "./Icon";
 import { ConfirmationCenter } from "./ConfirmationCenter";
@@ -10,13 +9,11 @@ import { NotificationCenter } from "./NotificationCenter";
 import { WindowControls } from "./WindowControls";
 
 const navigation = [
-  ["概览", "/", "app"],
-  ["收藏", "/favorites", "favorite"],
-  ["全部工具", "/tools", "grid"],
-  ["最近使用", "/recent", "history"],
-  ["正在运行", "/running", "play"],
-  ["桌面小组件", "/widgets", "grid"],
-  ["插件管理", "/plugins", "plugin"],
+  ["工具", "/tools", "tools"],
+  ["小组件", "/widgets", "widgets"],
+  ["插件", "/plugins", "plugin"],
+  ["运行", "/running", "play"],
+  ["设置", "/settings", "settings"],
 ] as const;
 
 export function AppShell() {
@@ -26,11 +23,8 @@ export function AppShell() {
   const reducedMotion = useAppStore((state) => state.reducedMotion);
   const setSearchOpen = useAppStore((state) => state.setSearchOpen);
   const setCommandPaletteOpen = useAppStore((state) => state.setCommandPaletteOpen);
-  const snapshots = useRuntimeSnapshots();
   const location = useLocation();
   const contentRef = useRef<HTMLElement>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarManual, setSidebarManual] = useState(false);
 
   useLayoutEffect(() => {
     if (contentRef.current) {
@@ -81,43 +75,26 @@ export function AppShell() {
   }
 
   return (
-    <div
-      className="app-shell"
-      data-sidebar-collapsed={sidebarCollapsed}
-      data-sidebar-manual={sidebarManual || undefined}
-    >
+    <div className="app-shell">
       <header className="titlebar" data-tauri-drag-region="deep">
+        <Link className="titlebar__logo" to="/" aria-label="打开概览">
+          <span className="brand-mark"><Icon name="app" /></span>
+        </Link>
         <div className="titlebar__brand" data-tauri-drag-region>
-          <span className="brand-mark"><Icon name="grid" /></span>
-          <span>工具中心</span>
-        </div>
-        <div className="titlebar__history">
+          <strong>ToolCenter</strong>
           <button type="button" aria-label="后退" onClick={() => window.history.back()}>
             <Icon name="back" />
           </button>
-          <button type="button" aria-label="前进" onClick={() => window.history.forward()}>
-            <Icon name="forward" />
-          </button>
         </div>
-        <button className="titlebar__search" type="button" onClick={() => setSearchOpen(true)}>
-          <Icon name="search" />
-          <span>搜索工具、页面或操作…</span>
-          <kbd>Ctrl K</kbd>
-        </button>
         <div className="titlebar__spacer" data-tauri-drag-region />
         <div className="titlebar__actions">
-          <button className="titlebar__command" type="button" onClick={() => setCommandPaletteOpen(true)}>
-            <Icon name="command" />
-            <span className="titlebar-command__label">命令</span>
-            <kbd>Ctrl Shift P</kbd>
+          <button className="button--icon" type="button" aria-label="全局搜索" onClick={() => setSearchOpen(true)}>
+            <Icon name="search" />
           </button>
-          <Link className="titlebar__activity button--icon" to="/running" aria-label="活动中心">
-            <Icon name="activity" />
-            {snapshots.length > 0 ? <span className="titlebar__badge">{snapshots.length}</span> : null}
-          </Link>
-          <Link className="titlebar__action titlebar__action--settings button--icon" to="/settings" aria-label="设置">
-            <Icon name="settings" />
-          </Link>
+          <button className="button--icon" type="button" aria-label="命令面板" onClick={() => setCommandPaletteOpen(true)}>
+            <Icon name="command" />
+          </button>
+          <span className="titlebar__divider" aria-hidden="true" />
         </div>
         <WindowControls />
       </header>
@@ -125,53 +102,20 @@ export function AppShell() {
         <nav aria-label="主导航">
           <ul>
             {navigation.map(([label, route, icon]) => (
-              <Fragment key={route}>
-                {route === "/plugins" ? <li className="sidebar__separator" aria-hidden="true" /> : null}
-                <li>
-                  <Link
-                    className="sidebar__link"
-                    to={route}
-                    activeOptions={{ exact: route === "/" }}
-                    title={sidebarCollapsed ? label : undefined}
-                  >
-                    <Icon name={icon} />
-                    <span>{label}</span>
-                  </Link>
-                </li>
-              </Fragment>
+              <li key={route}>
+                <Link className="sidebar__link" to={route}>
+                  <span className="sidebar__icon"><Icon name={icon} /></span>
+                  <span>{label}</span>
+                </Link>
+              </li>
             ))}
           </ul>
         </nav>
         <footer className="sidebar__footer">
-          <div className="sidebar__fixed-links">
-            <Link className="sidebar__link" to="/diagnostics" title={sidebarCollapsed ? "性能与诊断" : undefined}>
-              <Icon name="diagnostics" />
-              <span>性能与诊断</span>
-            </Link>
-            <Link className="sidebar__link" to="/settings" title={sidebarCollapsed ? "设置" : undefined}>
-              <Icon name="settings" />
-              <span>设置</span>
-            </Link>
-          </div>
-          <div className="sidebar__profile">
-            <span className="sidebar__avatar" aria-hidden="true">T</span>
-            <span className="sidebar__profile-name">Tester</span>
-            <span className="sidebar__profile-badge">设计稿</span>
-          </div>
-          <div className="sidebar__meta">
-            <span>V2.0 / Light UI Kit</span>
-            <button
-              className="sidebar__collapse"
-              type="button"
-              aria-label={sidebarCollapsed ? "展开导航" : "折叠导航"}
-              onClick={() => {
-                setSidebarManual(true);
-                setSidebarCollapsed((current) => !current);
-              }}
-            >
-              <Icon name={sidebarCollapsed ? "chevron-right" : "back"} />
-            </button>
-          </div>
+          <Link className="sidebar__link" to="/diagnostics">
+            <span className="sidebar__icon"><Icon name="help" /></span>
+            <span>帮助</span>
+          </Link>
         </footer>
       </aside>
       <main className="content" ref={contentRef}>

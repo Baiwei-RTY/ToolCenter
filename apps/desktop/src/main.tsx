@@ -3,6 +3,10 @@ import type { WidgetDisplayMode, WidgetSize } from "@tool-center/plugin-contract
 import { isTauriHost } from "@tool-center/plugin-runtime";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "mdui/mdui.css";
+import "mdui/components/button.js";
+import "mdui/components/chip.js";
+import "mdui/components/linear-progress.js";
 
 import { router } from "./app/router";
 import { WidgetHostSurface } from "./components/WidgetHostSurface";
@@ -12,6 +16,7 @@ import { notify } from "./services/notifications";
 import { widgetService } from "./services/widgets";
 import { useAppStore } from "./stores/app-store";
 import "./styles/app.css";
+import "./styles/material3.css";
 
 async function start(): Promise<void> {
   const parameters = new URLSearchParams(window.location.search);
