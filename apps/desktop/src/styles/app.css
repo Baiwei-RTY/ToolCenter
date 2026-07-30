@@ -8,9 +8,9 @@ html,
 body,
 #root {
   width: 100%;
-  min-width: 900px;
+  min-width: 0;
   height: 100%;
-  min-height: 600px;
+  min-height: 0;
   margin: 0;
   overflow: hidden;
 }
@@ -81,7 +81,7 @@ button:disabled {
 .button--primary {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
 }
 
 .button--primary:hover:not(:disabled) {
@@ -184,7 +184,7 @@ button:disabled {
   flex: 0 0 32px;
   border-radius: 9px;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
   place-items: center;
 }
 
@@ -285,7 +285,7 @@ kbd {
   border-radius: 999px;
   padding: 0 4px;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
   font-size: 10px;
   place-items: center;
 }
@@ -870,7 +870,7 @@ select {
   margin-bottom: 6px;
   border-radius: 14px;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
   place-items: center;
 }
 
@@ -912,7 +912,7 @@ select {
 .button-link--primary {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
 }
 
 .text-link {

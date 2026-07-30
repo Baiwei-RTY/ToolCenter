@@ -5,11 +5,16 @@
 
 html {
   font-family:
-    Roboto,
     "Noto Sans SC",
     "Segoe UI Variable",
     "Microsoft YaHei UI",
+    "Segoe UI",
+    "Microsoft YaHei",
     sans-serif;
+  font-size: 16px;
+}
+
+body {
   font-size: 14px;
 }
 
@@ -265,7 +270,7 @@ html {
 }
 
 .switch input:checked + .switch__track .switch__thumb {
-  background: white;
+  background: var(--color-on-primary);
   transform: translateX(20px);
 }
 
@@ -359,25 +364,31 @@ html {
 }
 
 .plugin-filter-chip {
+  height: 40px;
+  min-height: 40px;
   flex: 0 0 auto;
+  border-radius: 999px;
   color: var(--color-text-primary);
-  --mdui-comp-chip-container-height: 40px;
+  font-size: 15px;
+  --shape-corner: 999px;
 }
 
-.plugin-filter-chip::part(container) {
+.plugin-filter-chip::part(button) {
+  height: 40px;
   border-radius: 999px;
-  padding: 0 13px;
+  padding: 0 16px;
 }
 
 .plugin-filter-chip--selected {
-  color: white;
+  color: var(--color-on-primary);
   --mdui-color-secondary-container: var(--mdui-color-primary);
   --mdui-color-on-secondary-container: var(--mdui-color-on-primary);
 }
 
-.plugin-filter-chip--selected::part(container) {
+.plugin-filter-chip--selected::part(button) {
   border-color: var(--color-primary);
   background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .plugin-filter-chip::part(selected-icon) {
@@ -385,7 +396,10 @@ html {
 }
 
 .tool-list {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  gap: 0;
   padding: 0 12px 22px;
   overflow: auto;
   scrollbar-color: var(--color-outline) transparent;
@@ -453,7 +467,15 @@ html {
 
 .tool-row__icon--selected {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
+}
+
+.tool-row__icon--hdr .tc-icon {
+  width: 42px;
+  height: 30px;
+  border: 2px solid currentcolor;
+  border-radius: 6px;
+  font-size: 20px;
 }
 
 .tool-row__copy {
@@ -549,8 +571,8 @@ html {
   min-width: 0;
   grid-template-columns: 118px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 24px;
-  padding: 36px 68px 20px;
+  gap: 30px;
+  padding: 24px 68px 32px;
   background: var(--color-surface);
 }
 
@@ -614,15 +636,22 @@ html {
 }
 
 .plugin-center-open {
+  height: 56px;
+  min-height: 56px;
   min-width: 152px;
-  --mdui-comp-button-container-height: 56px;
-  --mdui-comp-button-container-shape: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  --shape-corner: 12px;
+}
+
+.plugin-center-open::part(button) {
+  height: 56px;
+  border-radius: 12px;
+  padding: 0 22px;
 }
 
 .plugin-center-open .tc-icon {
-  margin-right: 8px;
   font-size: 22px;
-  vertical-align: -4px;
 }
 
 .plugin-center-tabs {
@@ -687,7 +716,7 @@ html {
   display: grid;
   min-width: 0;
   min-height: 100%;
-  grid-template-columns: minmax(0, 1fr) 292px;
+  grid-template-columns: minmax(0, 1fr) 306px;
   gap: 26px;
 }
 
@@ -1317,7 +1346,7 @@ html {
   :root {
     --sidebar-expanded: 92px;
     --sidebar-collapsed: 92px;
-    --tool-pane-width: 330px;
+    --tool-pane-width: 300px;
   }
 
   .sidebar__link {
@@ -1357,6 +1386,12 @@ html {
     min-width: 126px;
   }
 
+  .plugin-center-tabs {
+    gap: 0;
+    padding: 0 18px;
+    overflow-x: auto;
+  }
+
   .plugin-overview-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1369,6 +1404,16 @@ html {
   .plugin-summary-panel section + section {
     border-top: 0;
     border-left: 1px solid var(--color-divider);
+  }
+
+  .plugin-runtime-status {
+    grid-template-columns: minmax(0, 1fr) 42px auto;
+    gap: 10px;
+    padding: 0 18px;
+  }
+
+  .plugin-runtime-progress {
+    display: none;
   }
 }
 
@@ -1450,9 +1495,7 @@ html {
   }
 
   .plugin-center-tabs {
-    gap: 0;
     padding: 0 12px;
-    overflow-x: auto;
   }
 
   .plugin-center-tabs button {
@@ -1473,13 +1516,7 @@ html {
   }
 
   .plugin-runtime-status {
-    grid-template-columns: minmax(0, 1fr) 42px auto;
-    gap: 10px;
     padding: 0 16px;
-  }
-
-  .plugin-runtime-progress {
-    display: none;
   }
 
   .plugin-runtime-status > button {
@@ -1489,6 +1526,208 @@ html {
 
   .plugin-runtime-status > button .tc-icon {
     font-size: 22px;
+  }
+}
+
+@media (height <= 850px) {
+  :root {
+    --titlebar-height: 68px;
+  }
+
+  .titlebar__brand button {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    min-height: 46px;
+  }
+
+  .sidebar nav {
+    padding-top: 10px;
+  }
+
+  .sidebar__link {
+    height: 78px;
+    gap: 5px;
+    font-size: 13px;
+  }
+
+  .sidebar__icon {
+    height: 40px;
+  }
+
+  .sidebar__link .tc-icon {
+    font-size: 26px;
+  }
+
+  .sidebar__footer {
+    padding-bottom: 8px;
+  }
+
+  .sidebar__footer .sidebar__link {
+    height: 70px;
+  }
+
+  .tool-master-pane__header {
+    padding: 14px 20px 10px;
+  }
+
+  .tool-master-pane__header h1 {
+    margin: 0 0 10px 4px;
+    font-size: 26px;
+  }
+
+  .tool-search {
+    height: 44px;
+  }
+
+  .tool-search input {
+    font-size: 15px;
+  }
+
+  .filter-chips {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .plugin-filter-chip {
+    height: 34px;
+    min-height: 34px;
+    font-size: 14px;
+  }
+
+  .plugin-filter-chip::part(button) {
+    height: 34px;
+    padding: 0 13px;
+  }
+
+  .tool-list {
+    padding-bottom: 12px;
+  }
+
+  .tool-list__label {
+    padding: 8px 0 10px;
+    font-size: 14px;
+  }
+
+  .tool-row {
+    min-height: 76px;
+  }
+
+  .tool-row__select {
+    min-height: 75px;
+  }
+
+  .tool-row__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .tool-row__icon .tc-icon {
+    font-size: 28px;
+  }
+
+  .tool-row__icon--hdr .tc-icon {
+    width: 38px;
+    height: 27px;
+    font-size: 18px;
+  }
+
+  .tool-row__copy {
+    gap: 5px;
+  }
+
+  .tool-row__copy strong {
+    font-size: 15px;
+  }
+
+  .tool-row__copy > span {
+    font-size: 13px;
+  }
+
+  .plugin-detail-pane {
+    grid-template-rows: 154px 52px minmax(0, 1fr) 68px;
+  }
+
+  .plugin-center-hero {
+    grid-template-columns: 80px minmax(0, 1fr) auto;
+    gap: 18px;
+    padding: 20px 32px 14px;
+  }
+
+  .plugin-center-hero__icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+  }
+
+  .plugin-center-hero__icon .tc-icon {
+    font-size: 46px;
+  }
+
+  .plugin-center-hero__copy h2 {
+    font-size: 27px;
+  }
+
+  .plugin-center-hero__copy p {
+    margin: 5px 0 9px;
+    font-size: 15px;
+  }
+
+  .plugin-center-hero__copy > div {
+    gap: 18px;
+    font-size: 14px;
+  }
+
+  .plugin-enabled-badge {
+    min-height: 30px;
+    padding: 0 14px;
+  }
+
+  .plugin-center-open {
+    height: 48px;
+    min-height: 48px;
+  }
+
+  .plugin-center-open::part(button) {
+    height: 48px;
+  }
+
+  .plugin-center-tabs button {
+    height: 51px;
+    min-height: 51px;
+    font-size: 14px;
+  }
+
+  .plugin-center-content {
+    padding: 18px 20px;
+  }
+
+  .plugin-overview-layout {
+    gap: 16px;
+  }
+
+  .plugin-metric-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .plugin-metric-grid > div {
+    min-height: 82px;
+    gap: 4px 6px;
+    padding: 10px 8px;
+  }
+
+  .plugin-metric-grid .tc-icon {
+    font-size: 22px;
+  }
+
+  .plugin-metric-grid strong {
+    font-size: 22px;
+  }
+
+  .plugin-runtime-status {
+    padding: 0 22px;
   }
 }
 

@@ -48,11 +48,14 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", listener);
   }, [setCommandPaletteOpen, setSearchOpen]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
     const applyTheme = () => {
-      root.dataset.theme = theme === "system" ? (systemTheme.matches ? "dark" : "light") : theme;
+      const resolvedTheme = theme === "system" ? (systemTheme.matches ? "dark" : "light") : theme;
+      root.dataset.theme = resolvedTheme;
+      root.classList.toggle("mdui-theme-dark", resolvedTheme === "dark");
+      root.classList.toggle("mdui-theme-light", resolvedTheme === "light");
     };
     applyTheme();
     systemTheme.addEventListener("change", applyTheme);
@@ -67,7 +70,7 @@ export function AppShell() {
   if (!initialized) {
     return (
       <div className="app-loading" role="status">
-        <span className="app-loading__mark"><Icon name="app" /></span>
+        <span className="app-loading__mark"><Icon name="brand" /></span>
         <strong>正在准备工具中心</strong>
         <span>加载设置与插件运行环境…</span>
       </div>
@@ -78,7 +81,7 @@ export function AppShell() {
     <div className="app-shell">
       <header className="titlebar" data-tauri-drag-region="deep">
         <Link className="titlebar__logo" to="/" aria-label="打开概览">
-          <span className="brand-mark"><Icon name="app" /></span>
+          <span className="brand-mark"><Icon name="brand" /></span>
         </Link>
         <div className="titlebar__brand" data-tauri-drag-region>
           <strong>ToolCenter</strong>

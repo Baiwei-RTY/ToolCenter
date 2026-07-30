@@ -1,5 +1,47 @@
 # ToolCenter 设计验收记录
 
+## 当前复验：原生候选版与 Material 3 确认稿一致性修正
+
+### 修正前证据
+
+- 设计基准：`视觉稿件/ToolCenter-Material3-第二套紫色变体-v5/01.png`，1487×1058、浅色、市场行情选中；
+- 原生候选截图：`design-qa-artifacts/native-candidate-before-tools-1202x802-dark.jpg`；
+- 浏览器同尺寸截图：`design-qa-artifacts/browser-preview-current-1202x802-light.png`；
+- 设计稿与当前实现同画布对照：`design-qa-artifacts/reference-vs-current-before-1487x1058.png`。
+
+### 修正前问题
+
+- P1：候选版继承旧设置后打开旧概览页和系统深色主题，与确认稿的 `/tools` 浅色首屏不同；
+- P1：MDUI 深色主题类未启用，Shadow DOM 组件仍使用浅色前景令牌，出现黑字、按钮和背景混色；
+- P1：候选默认窗口为 1200×800，确认稿为 1487×1058，触发整套 `<=1280px` 缩小规则并裁去 258px 内容高度；
+- P2：MDUI Chip/Button 使用了无效尺寸变量和错误 Shadow Part，图标未使用官方 `icon` slot；
+- P2：旧 `.tool-list` 的 `gap: 10px` 串入新插件中心，列表分隔与纵向位置偏移；
+- P2：品牌、命令入口、页面、小组件和便签等图标与确认稿语义或轮廓不一致。
+
+### 修正后证据
+
+- 浏览器确认尺寸：`design-qa-artifacts/browser-after-final-1487x1058.png`；
+- 浏览器紧凑尺寸：`design-qa-artifacts/browser-after-fix-1202x802-v2.png`；
+- 浏览器深色插件中心：`design-qa-artifacts/browser-dark-theme-tools-1487x1058.png`；
+- 原生候选程序：`design-qa-artifacts/native-candidate-after-final-1489x1060.jpg`；
+- 设计稿与原生候选同画布对照：`design-qa-artifacts/reference-vs-native-after-1487x1058.jpg`。
+
+### 修正结果
+
+- P1：旧设置一次性迁移到 `/tools`、浅色主题和当前注册表顺序；插件启停、收藏、最近使用、权限、存储、Widget 与凭据不变；
+- P1：文件夹候选构建使用独立应用标识与数据目录，测试前的原版设置已原样恢复；候选版不会再改写正式版或旧候选版的主题、首页与插件排序；
+- P1：MDUI 浅色/深色主题类与启动器 Design Tokens 同步，深色插件中心和设置页均无错误前景色；
+- P1：默认原生窗口改为 1487×1058 并居中；短高度窗口使用独立紧凑规则，不再裁切固定头部和底栏；
+- P2：Chip/Button 使用真实 host 尺寸、`::part(button)` 与官方图标 slot，标签、圆角和图标基线对齐；
+- P2：恢复 Noto Sans SC 首选字体，原生 WebView2 中文细笔画完整；MDUI rem 基准恢复 16px；
+- P2：HDR、命令入口、页面、小组件、便签、主题模式等图标均改用匹配语义的官方 `@mdui/icons`；
+- P2：原生候选、浏览器预览和设计稿的标题栏、导航轨、424px 主列表、详情头部、页签、内容边界与底栏位置一致；
+- P0/P1/P2 未解决项：无。品牌盾牌内部字母没有对应的官方 Material 图标，继续使用最接近的官方盾牌轮廓，记录为 P3。
+
+**当前复验结果：passed**
+
+---
+
 ## 当前验收：Material 3 插件中心正式接入
 
 ### 验收基线

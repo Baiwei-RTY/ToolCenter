@@ -6,6 +6,7 @@
   --color-surface-2: #f1ecf4;
   --color-surface-3: #e9e3ec;
   --color-primary: #6750a4;
+  --color-on-primary: #fff;
   --color-primary-hover: #5d469a;
   --color-primary-pressed: #513b8e;
   --color-primary-container: #eaddff;
@@ -70,6 +71,7 @@
   --color-surface-2: #302d35;
   --color-surface-3: #39363e;
   --color-primary: #d0bcff;
+  --color-on-primary: #381e72;
   --color-primary-hover: #ddcaff;
   --color-primary-pressed: #bba6ec;
   --color-primary-container: #4f378b;
@@ -78,8 +80,17 @@
   --color-text-secondary: #cac4cf;
   --color-text-muted: #aaa3ad;
   --color-text-disabled: #716b75;
+  --color-success: #9bd5aa;
+  --color-success-container: #1f5030;
+  --color-warning: #f2c15c;
+  --color-warning-container: #5f4700;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-info: #d0bcff;
+  --color-info-container: #4f378b;
   --color-divider: #47424b;
   --color-outline: #625c66;
+  --color-focus: #d0bcff;
   --color-overlay: rgb(0 0 0 / 64%);
   --shadow-overlay: 0 14px 40px rgb(0 0 0 / 34%);
   --mdui-color-primary: 208 188 255;
@@ -100,6 +111,7 @@
   --color-surface-2: #eeeaf3;
   --color-surface-3: #e8e4ee;
   --color-primary: #5b5fc7;
+  --color-on-primary: #fff;
   --color-primary-hover: #5054b7;
   --color-primary-pressed: #44489f;
   --color-primary-container: #e3e2ff;
@@ -120,6 +132,7 @@
 :root[data-theme="dark"] .plugin-content-shell,
 :root[data-theme="dark"][data-surface="widget-host"] {
   --color-primary: #c2c1ff;
+  --color-on-primary: #2c2f77;
   --color-primary-hover: #d0cfff;
   --color-primary-pressed: #aaa9e9;
   --color-primary-container: #3f427e;

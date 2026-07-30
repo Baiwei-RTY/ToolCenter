@@ -279,6 +279,7 @@ export function ToolsPage() {
             orderedPlugins.map((plugin) => {
               const enabled = enabledPluginIds.includes(plugin.id);
               const selectedRow = selected?.id === plugin.id;
+              const pluginIcon = iconForPlugin(plugin);
               return (
                 <article
                   className={`tool-row${selectedRow ? " tool-row--selected" : ""}`}
@@ -293,8 +294,12 @@ export function ToolsPage() {
                       setActiveTab("overview");
                     }}
                   >
-                    <span className={`tool-row__icon${selectedRow ? " tool-row__icon--selected" : ""}`}>
-                      <Icon name={iconForPlugin(plugin)} />
+                    <span
+                      className={`tool-row__icon tool-row__icon--${pluginIcon}${
+                        selectedRow ? " tool-row__icon--selected" : ""
+                      }`}
+                    >
+                      <Icon name={pluginIcon} />
                     </span>
                     <span className="tool-row__copy">
                       <strong>{plugin.name}</strong>
@@ -339,7 +344,11 @@ export function ToolsPage() {
       {selected ? (
         <main className="plugin-detail-pane">
           <header className="plugin-center-hero">
-            <span className="plugin-center-hero__icon">
+            <span
+              className={`plugin-center-hero__icon plugin-center-hero__icon--${iconForPlugin(
+                selected,
+              )}`}
+            >
               <Icon name={iconForPlugin(selected)} />
             </span>
             <div className="plugin-center-hero__copy">
@@ -364,7 +373,7 @@ export function ToolsPage() {
                 disabled: !selectedEnabled,
                 onClick: () => void openPlugin(selected),
               },
-              <Icon name="external" />,
+              <Icon name="external" slot="icon" />,
               openLabel(selected),
             )}
           </header>
