@@ -23,10 +23,12 @@ body {
   width: 1em;
   min-width: 1em;
   height: 1em;
+  flex: 0 0 auto;
   font-family: inherit;
   font-size: 24px;
   line-height: 1;
   place-items: center;
+  vertical-align: middle;
 }
 
 .app-shell {
@@ -173,12 +175,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 4px;
   border-radius: 16px;
   padding: 0;
   color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 500;
+  line-height: 20px;
   text-align: center;
 }
 
@@ -198,7 +201,7 @@ body {
 .sidebar__icon {
   display: grid;
   width: 64px;
-  height: 44px;
+  height: 36px;
   border-radius: 13px;
   place-items: center;
 }
@@ -209,9 +212,17 @@ body {
 }
 
 .sidebar__link .tc-icon {
-  width: auto;
-  flex: none;
-  font-size: 29px;
+  display: block;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  font-size: 28px;
+}
+
+.sidebar__link > span:last-child {
+  display: block;
+  line-height: 20px;
 }
 
 .sidebar__footer {
