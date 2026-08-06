@@ -114,116 +114,154 @@ export function MarketTerminal({
       data-phase={market.phase}
       data-stale={market.stale ? "true" : undefined}
     >
-      <header className="market-terminal__header">
-        <div className="market-terminal__instrument-area">
-          <div className="market-terminal__picker" ref={menuRef}>
-            <button
-              className="market-terminal__instrument-button"
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              disabled={locked}
-              onClick={() => setMenuOpen((open) => !open)}
-            >
-              <span>
-                {selectedInstrument?.symbol ?? "—"} · {selectedInstrument?.name ?? "未选择"}
-              </span>
-              <Icon name="chevron" className={menuOpen ? "is-open" : ""} />
-            </button>
-            {menuOpen ? (
-              <div className="market-terminal__product-menu" role="menu" aria-label="选择行情产品">
-                {market.settings.instruments.map((instrument) => (
-                  <button
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={market.preferences.symbol === instrument.symbol}
-                    className={market.preferences.symbol === instrument.symbol ? "is-selected" : ""}
-                    key={instrument.symbol}
-                    onClick={() => {
-                      market.selectSymbol(instrument.symbol);
-                      setMenuOpen(false);
-                    }}
-                  >
-                    <strong>{instrument.symbol}</strong>
-                    <span>{instrument.name}</span>
-                  </button>
-                ))}
-                {onOpenSettings ? (
-                  <button
-                    className="market-terminal__manage-button"
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onOpenSettings();
-                    }}
-                  >
-                    <span className="market-terminal__manage-label">
-                      <Icon name="settings" />
-                      管理自选与数据源
-                    </span>
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
+      {variant === "page" ? (
+        <header className="market-terminal__header">
+          <div className="market-terminal__instrument-area">
+            <div className="market-terminal__picker" ref={menuRef}>
+              <button
+                className="market-terminal__instrument-button"
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                disabled={locked}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                <span>
+                  {selectedInstrument?.symbol ?? "—"} · {selectedInstrument?.name ?? "未选择"}
+                </span>
+                <Icon name="chevron" className={menuOpen ? "is-open" : ""} />
+              </button>
+              {menuOpen ? (
+                <ProductMenu
+                  market={market}
+                  onManage={
+                    onOpenSettings
+                      ? () => {
+                          setMenuOpen(false);
+                          onOpenSettings();
+                        }
+                      : undefined
+                  }
+                  onSelect={(symbol) => {
+                    market.selectSymbol(symbol);
+                    setMenuOpen(false);
+                  }}
+                />
+              ) : null}
+            </div>
+            <div className="market-terminal__connection" data-state={connection.state}>
+              <span className="market-terminal__status-dot" aria-hidden="true" />
+              <span>{connection.label}</span>
+            </div>
           </div>
-          <div className="market-terminal__connection" data-state={connection.state}>
-            <span className="market-terminal__status-dot" aria-hidden="true" />
-            <span>{connection.label}</span>
-          </div>
-        </div>
 
-        <nav className="market-terminal__controls" aria-label="图表控制">
-          <div className="market-terminal__control-group market-terminal__mode-control">
-            {chartTypes.map((item) => (
-              <button
-                type="button"
-                aria-pressed={market.preferences.chartType === item.value}
-                className={market.preferences.chartType === item.value ? "is-active" : ""}
-                disabled={locked}
-                key={item.value}
-                onClick={() => market.setChartType(item.value)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <span className="market-terminal__control-divider" aria-hidden="true" />
-          <div className="market-terminal__control-group market-terminal__range-control">
-            {ranges.map((range) => (
-              <button
-                type="button"
-                aria-pressed={market.preferences.range === range}
-                className={market.preferences.range === range ? "is-active" : ""}
-                disabled={locked}
-                key={range}
-                onClick={() => market.setRange(range)}
-              >
-                {rangeLabel(range)}
-              </button>
-            ))}
-          </div>
-          <button
-            className="market-terminal__refresh-button"
-            type="button"
-            aria-label="刷新行情"
-            aria-busy={market.refreshing}
-            disabled={locked || market.refreshing}
-            onClick={market.refresh}
-          >
-            <Icon name="refresh" className={market.refreshing ? "is-refreshing" : ""} />
-          </button>
-        </nav>
-      </header>
+          <nav className="market-terminal__controls" aria-label="图表控制">
+            <div className="market-terminal__control-group market-terminal__mode-control">
+              {chartTypes.map((item) => (
+                <button
+                  type="button"
+                  aria-pressed={market.preferences.chartType === item.value}
+                  className={market.preferences.chartType === item.value ? "is-active" : ""}
+                  disabled={locked}
+                  key={item.value}
+                  onClick={() => market.setChartType(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <span className="market-terminal__control-divider" aria-hidden="true" />
+            <div className="market-terminal__control-group market-terminal__range-control">
+              {ranges.map((range) => (
+                <button
+                  type="button"
+                  aria-pressed={market.preferences.range === range}
+                  className={market.preferences.range === range ? "is-active" : ""}
+                  disabled={locked}
+                  key={range}
+                  onClick={() => market.setRange(range)}
+                >
+                  {rangeLabel(range)}
+                </button>
+              ))}
+            </div>
+            <button
+              className="market-terminal__refresh-button"
+              type="button"
+              aria-label="刷新行情"
+              aria-busy={market.refreshing}
+              disabled={locked || market.refreshing}
+              onClick={market.refresh}
+            >
+              <Icon name="refresh" className={market.refreshing ? "is-refreshing" : ""} />
+            </button>
+          </nav>
+        </header>
+      ) : null}
 
       <section className="market-terminal__chart-zone">
+        {variant === "widget" ? (
+          <div className="market-terminal__widget-toolbar">
+            <div className="market-terminal__widget-picker" ref={menuRef}>
+              <button
+                className="market-terminal__widget-instrument"
+                type="button"
+                aria-label="切换行情产品"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                disabled={locked}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                <span>{selectedInstrument?.symbol ?? "—"}</span>
+                <Icon name="chevron" className={menuOpen ? "is-open" : ""} />
+              </button>
+              {menuOpen ? (
+                <ProductMenu
+                  market={market}
+                  onSelect={(symbol) => {
+                    market.selectSymbol(symbol);
+                    setMenuOpen(false);
+                  }}
+                />
+              ) : null}
+            </div>
+
+            <nav className="market-terminal__widget-controls" aria-label="小组件图表控制">
+              <div className="market-terminal__widget-control-group">
+                {chartTypes.map((item) => (
+                  <button
+                    type="button"
+                    aria-pressed={market.preferences.chartType === item.value}
+                    className={market.preferences.chartType === item.value ? "is-active" : ""}
+                    disabled={locked}
+                    key={item.value}
+                    onClick={() => market.setChartType(item.value)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <span className="market-terminal__widget-divider" aria-hidden="true" />
+              <div className="market-terminal__widget-control-group">
+                {ranges.map((range) => (
+                  <button
+                    type="button"
+                    aria-pressed={market.preferences.range === range}
+                    className={market.preferences.range === range ? "is-active" : ""}
+                    disabled={locked}
+                    key={range}
+                    onClick={() => market.setRange(range)}
+                  >
+                    {rangeLabel(range)}
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </div>
+        ) : null}
+
         {snapshot ? (
           <div className="market-terminal__quote" aria-live="polite">
-            {variant === "widget" ? (
-              <span className="market-terminal__widget-label">
-                {snapshot.instrument.symbol} · {snapshot.instrument.name}
-              </span>
-            ) : null}
             <div className="market-terminal__price-row">
               <strong>{formatPrice(snapshot.price)}</strong>
               <span>{snapshot.instrument.currency}</span>
@@ -250,14 +288,16 @@ export function MarketTerminal({
         ) : null}
       </section>
 
-      <footer className="market-terminal__footer">
-        <Icon name="calendar" />
-        <span title={market.errorMessage}>
-          {market.stale
-            ? "更新失败 · 显示上次行情"
-            : snapshot?.statusLabel ?? footerStatus(market.phase)}
-        </span>
-      </footer>
+      {variant === "page" ? (
+        <footer className="market-terminal__footer">
+          <Icon name="calendar" />
+          <span title={market.errorMessage}>
+            {market.stale
+              ? "更新失败 · 显示上次行情"
+              : snapshot?.statusLabel ?? footerStatus(market.phase)}
+          </span>
+        </footer>
+      ) : null}
       <span className="market-terminal__sr-only" role="status" aria-live="polite">
         {market.refreshing
           ? `正在更新 ${selectedInstrument?.symbol ?? "行情"}`
@@ -266,6 +306,47 @@ export function MarketTerminal({
             : footerStatus(market.phase)}
       </span>
     </section>
+  );
+}
+
+function ProductMenu({
+  market,
+  onSelect,
+  onManage,
+}: {
+  readonly market: MarketWatchController;
+  readonly onSelect: (symbol: string) => void;
+  readonly onManage?: () => void;
+}) {
+  return (
+    <div className="market-terminal__product-menu" role="menu" aria-label="选择行情产品">
+      {market.settings.instruments.map((instrument) => (
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked={market.preferences.symbol === instrument.symbol}
+          className={market.preferences.symbol === instrument.symbol ? "is-selected" : ""}
+          key={instrument.symbol}
+          onClick={() => onSelect(instrument.symbol)}
+        >
+          <strong>{instrument.symbol}</strong>
+          <span>{instrument.name}</span>
+        </button>
+      ))}
+      {onManage ? (
+        <button
+          className="market-terminal__manage-button"
+          type="button"
+          role="menuitem"
+          onClick={onManage}
+        >
+          <span className="market-terminal__manage-label">
+            <Icon name="settings" />
+            管理自选与数据源
+          </span>
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -367,7 +448,7 @@ function MarketChart({
       event.stopPropagation();
       const rectangle = host.getBoundingClientRect();
       const plotLeft = rectangle.width * 0.028;
-      const plotRight = rectangle.width * (1 - 0.0855);
+      const plotRight = rectangle.width * (compact ? 0.86 : 1 - 0.0855);
       const anchorRatio = clamp(
         (event.clientX - rectangle.left - plotLeft) / Math.max(1, plotRight - plotLeft),
         0,
@@ -408,7 +489,10 @@ function MarketChart({
       event.stopPropagation();
       chartRef.current?.dispatchAction({ type: "hideTip" });
       const rectangle = host.getBoundingClientRect();
-      const plotWidth = Math.max(1, rectangle.width * ((1 - 0.0855) - 0.028));
+      const plotWidth = Math.max(
+        1,
+        rectangle.width * ((compact ? 0.86 : 1 - 0.0855) - 0.028),
+      );
       const nextStart = clamp(
         dragState.start - ((event.clientX - dragState.originX) / plotWidth) * dragState.span,
         0,
@@ -464,21 +548,19 @@ function MarketChart({
       host.removeEventListener("keydown", handleKeyDown);
       dragStateRef.current = null;
     };
-  }, [snapshot.bars.length]);
+  }, [compact, snapshot.bars.length]);
 
   const showReferenceAxis =
     snapshot.instrument.symbol === "AAPL" &&
     range === "1d" &&
     snapshot.statusLabel.includes("周末休市") &&
     zoom.end - zoom.start >= 0.999_9;
-  const referenceAxisLabels = compact
-    ? [
-        ["215.00", "31.5%"],
-        ["214.00", "43.1%"],
-        ["213.00", "54.8%"],
-        ["212.00", "66.4%"],
-        ["211.00", "78%"],
-      ]
+  const compactTop = compactGridTop(width);
+  const referenceAxisLabels: readonly (readonly [string, string])[] = compact
+    ? [215, 214, 213, 212, 211].map((value) => {
+        const top = compactTop + ((215 - value) / (215 - 210.4)) * (100 - compactTop - 15);
+        return [value.toFixed(2), `${Number(top.toFixed(1))}%`];
+      })
     : [
         ["215.00", "23.7%"],
         ["214.00", "39.8%"],
@@ -580,6 +662,7 @@ function buildChartOption(
       data: keyIndexes.slice(1, -1).map((index) => ({ xAxis: index })),
     },
   };
+  const compactTop = compactGridTop(width);
 
   return {
     backgroundColor: "transparent",
@@ -587,7 +670,7 @@ function buildChartOption(
     grid: {
       left: "2.8%",
       right: compact ? "14%" : "8.55%",
-      top: compact ? "31.5%" : "23.7%",
+      top: compact ? `${compactTop}%` : "23.7%",
       bottom: compact ? "15%" : "6.5%",
       containLabel: false,
     },
@@ -913,6 +996,10 @@ function Icon({
     class: `market-terminal__icon ${className}`.trim(),
     "aria-hidden": "true",
   });
+}
+
+function compactGridTop(width: number): number {
+  return width < 430 ? 44 : 42;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
