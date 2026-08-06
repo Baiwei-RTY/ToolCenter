@@ -122,7 +122,7 @@ export function MarketSettingsPanel({
     const accepted = await context.ui.confirm({
       title: "移除 API Key",
       message:
-        "移除后，MSFT 等需要 Twelve Data Key 的产品会暂停更新；Kraken 现货、Binance 永续和公开演示产品不受影响。",
+        "移除后，非公开演示的外汇和商品会暂停更新；BiQuote 股票、Kraken 现货、Binance 永续和公开演示产品不受影响。",
       dangerous: true,
     });
     if (!accepted) {
@@ -154,7 +154,7 @@ export function MarketSettingsPanel({
       if (decision === "prompt") {
         decision = await context.permissions.request(
           "network.request",
-          "用于验证 Twelve Data、Kraken 或 Binance 公共行情连接。",
+          "用于验证 BiQuote、Twelve Data、Kraken 或 Binance 公共行情连接。",
         );
         setPermission(decision);
       }
@@ -261,7 +261,7 @@ export function MarketSettingsPanel({
               网络：{permission === "granted" ? "已允许" : permission === "denied" ? "已拒绝" : "待确认"}
             </span>
             <span data-active>{credentialPresent ? "Twelve Data Key 已保存" : "免 Key 行情可用"}</span>
-            <span data-active>Kraken + Binance 公共接口</span>
+            <span data-active>BiQuote + Kraken + Binance 免 Key</span>
           </div>
 
           {feedback ? (
@@ -278,9 +278,9 @@ export function MarketSettingsPanel({
               <div className="market-settings__section-heading">
                 <div>
                   <h3>免费数据源</h3>
-                  <p>现货数字资产与永续合约免 Key；更多股票和外汇可使用 Twelve Data 免费 Key。</p>
+                  <p>股票、现货数字资产与永续合约免 Key；更多外汇和商品可使用 Twelve Data 免费 Key。</p>
                 </div>
-                <span>Twelve Data · Kraken · Binance</span>
+                <span>BiQuote · Twelve Data · Kraken · Binance</span>
               </div>
               <form className="market-settings__key-form" onSubmit={(event) => void saveApiKey(event)}>
                 <label>
@@ -308,7 +308,7 @@ export function MarketSettingsPanel({
                 ) : null}
               </div>
               <p className="market-settings__notice">
-                Kraken 提供免 Key 现货 OHLC；Binance 提供免 Key USDⓈ-M 永续行情。AAPL、EUR/USD 可使用 Twelve Data 公开演示，其余股票、外汇和商品通常需要个人免费 Key 或更高数据授权。
+                BiQuote 提供免 Key 股票 OHLC；Kraken 提供免 Key 现货 OHLC；Binance 提供免 Key USDⓈ-M 永续行情。EUR/USD 可使用 Twelve Data 公开演示，其余外汇和商品通常需要个人免费 Key 或更高数据授权。
               </p>
             </section>
 
@@ -349,7 +349,7 @@ export function MarketSettingsPanel({
             <div className="market-settings__section-heading">
               <div>
                 <h3>自选产品</h3>
-                <p>数字资产现货优先 Kraken，永续合约使用 Binance，其余产品使用 Twelve Data。</p>
+                <p>股票优先 BiQuote，数字资产现货使用 Kraken，永续合约使用 Binance，外汇和商品使用 Twelve Data。</p>
               </div>
               <span>{settings.instruments.length} / {MAX_INSTRUMENTS}</span>
             </div>
@@ -403,6 +403,9 @@ export function MarketSettingsPanel({
 }
 
 function providerLabel(instrument: MarketInstrument): string {
+  if (instrument.kind === "stock") {
+    return "BiQuote";
+  }
   if (instrument.kind === "futures") {
     return "Binance";
   }

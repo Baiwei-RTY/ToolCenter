@@ -52,6 +52,8 @@ const ranges: readonly MarketRange[] = ["1d", "5d", "1m"];
 const FULL_ZOOM = Object.freeze({ start: 0, end: 1 });
 const REFERENCE_TIME_FRACTIONS = [0, 0.2, 0.387, 0.55, 0.715, 0.855, 1] as const;
 const REFERENCE_TIME_LABELS = ["09:30", "10:30", "11:30", "12:30", "13:30", "14:30", "15:48"] as const;
+const COMPACT_REFERENCE_TIME_FRACTIONS = [0, 0.387, 0.715, 1] as const;
+const COMPACT_REFERENCE_TIME_LABELS = ["09:30", "11:30", "13:30", "15:48"] as const;
 
 interface MarketTerminalProps {
   readonly market: MarketWatchController;
@@ -217,6 +219,11 @@ export function MarketTerminal({
       <section className="market-terminal__chart-zone">
         {snapshot ? (
           <div className="market-terminal__quote" aria-live="polite">
+            {variant === "widget" ? (
+              <span className="market-terminal__widget-label">
+                {snapshot.instrument.symbol} · {snapshot.instrument.name}
+              </span>
+            ) : null}
             <div className="market-terminal__price-row">
               <strong>{formatPrice(snapshot.price)}</strong>
               <span>{snapshot.instrument.currency}</span>
@@ -234,6 +241,7 @@ export function MarketTerminal({
             snapshot={snapshot}
             range={market.preferences.range}
             chartType={market.preferences.chartType}
+            compact={variant === "widget"}
           />
         ) : null}
 
@@ -265,10 +273,12 @@ function MarketChart({
   snapshot,
   range,
   chartType,
+  compact,
 }: {
   readonly snapshot: MarketSnapshot;
   readonly range: MarketRange;
   readonly chartType: ChartType;
+  readonly compact: boolean;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof echarts.init> | null>(null);
@@ -287,8 +297,8 @@ function MarketChart({
     [snapshot.bars.length, zoom],
   );
   const option = useMemo(
-    () => buildChartOption(snapshot, range, chartType, width, zoom),
-    [chartType, range, snapshot, width, zoom],
+    () => buildChartOption(snapshot, range, chartType, width, zoom, compact),
+    [chartType, compact, range, snapshot, width, zoom],
   );
 
   useEffect(() => {
@@ -461,6 +471,21 @@ function MarketChart({
     range === "1d" &&
     snapshot.statusLabel.includes("周末休市") &&
     zoom.end - zoom.start >= 0.999_9;
+  const referenceAxisLabels = compact
+    ? [
+        ["215.00", "31.5%"],
+        ["214.00", "43.1%"],
+        ["213.00", "54.8%"],
+        ["212.00", "66.4%"],
+        ["211.00", "78%"],
+      ]
+    : [
+        ["215.00", "23.7%"],
+        ["214.00", "39.8%"],
+        ["213.00", "56.7%"],
+        ["212.00", "71.9%"],
+        ["211.00", "88.3%"],
+      ];
 
   return (
     <>
@@ -478,13 +503,7 @@ function MarketChart({
     />
       {showReferenceAxis ? (
         <div className="market-terminal__reference-axis" aria-hidden="true">
-          {[
-            ["215.00", "23.7%"],
-            ["214.00", "39.8%"],
-            ["213.00", "56.7%"],
-            ["212.00", "71.9%"],
-            ["211.00", "88.3%"],
-          ].map(([label, top]) => (
+          {referenceAxisLabels.map(([label, top]) => (
             <span style={{ "--market-axis-top": top } as CSSProperties} key={label}>{label}</span>
           ))}
         </div>
@@ -499,6 +518,7 @@ function buildChartOption(
   chartType: ChartType,
   width: number,
   zoom: ZoomWindow,
+  compact: boolean,
 ): EChartsCoreOption {
   const { startIndex, endIndex } = getVisibleBounds(snapshot.bars.length, zoom);
   const bars = snapshot.bars.slice(startIndex, endIndex + 1);
@@ -513,8 +533,15 @@ function buildChartOption(
     isFullView;
   const scale = clamp(width / 1_928, 0.62, 1.15);
   const labelCount = width < 620 ? 4 : 7;
+  const useCompactReferenceLabels = compact && width < 430;
+  const referenceTimeFractions = useCompactReferenceLabels
+    ? COMPACT_REFERENCE_TIME_FRACTIONS
+    : REFERENCE_TIME_FRACTIONS;
+  const referenceTimeLabels = useCompactReferenceLabels
+    ? COMPACT_REFERENCE_TIME_LABELS
+    : REFERENCE_TIME_LABELS;
   const keyIndexes = isReferencePreview
-    ? REFERENCE_TIME_FRACTIONS.map((fraction) =>
+    ? referenceTimeFractions.map((fraction) =>
         Math.round(fraction * Math.max(0, bars.length - 1)),
       )
     : Array.from({ length: labelCount }, (_, index) =>
@@ -524,7 +551,7 @@ function buildChartOption(
     keyIndexes.map((index, labelIndex) => [
       index,
       isReferencePreview
-        ? REFERENCE_TIME_LABELS[labelIndex]
+        ? referenceTimeLabels[labelIndex]
         : formatAxisTimestamp(bars[index]?.timestamp, range),
     ]),
   );
@@ -559,9 +586,9 @@ function buildChartOption(
     animation: isFullView && !reduceMotion,
     grid: {
       left: "2.8%",
-      right: "8.55%",
-      top: "23.7%",
-      bottom: "6.5%",
+      right: compact ? "14%" : "8.55%",
+      top: compact ? "31.5%" : "23.7%",
+      bottom: compact ? "15%" : "6.5%",
       containLabel: false,
     },
     tooltip: {
@@ -648,8 +675,8 @@ function buildChartOption(
                     },
                     label: {
                       show: true,
-                      position: "right",
-                      distance: 16 * scale,
+                      position: compact ? "left" : "right",
+                      distance: (compact ? 10 : 16) * scale,
                       padding: [5 * scale, 10 * scale],
                       borderRadius: 4 * scale,
                       backgroundColor: "#2f7df4",

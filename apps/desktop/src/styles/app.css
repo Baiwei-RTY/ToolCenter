@@ -2264,6 +2264,38 @@ html[data-surface="widget-host"] #root {
   height: 100%;
 }
 
+.widget-host__instance[data-plugin-id="toolcenter.market-watch"] {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.market-watch"] > .widget-host__controls {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 96px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-outline), transparent 34%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-1), transparent 10%);
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.market-watch"]:focus-within > .widget-host__controls,
+.widget-host__instance[data-plugin-id="toolcenter.market-watch"]:hover > .widget-host__controls {
+  pointer-events: auto;
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.market-watch"] > .widget-host__content {
+  width: 100%;
+  height: 100%;
+}
+
 .widget-host__resize-zone {
   position: absolute;
   z-index: 4;

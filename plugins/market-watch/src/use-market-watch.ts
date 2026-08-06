@@ -391,7 +391,7 @@ export function useMarketWatch(
       void context.permissions
         .request(
           "network.request",
-          "用于从 Twelve Data、Kraken 或 Binance 公共行情接口读取所选金融产品的最新价格与 OHLC 时间序列。",
+          "用于从 BiQuote、Twelve Data、Kraken 或 Binance 公共行情接口读取所选金融产品的最新价格与 OHLC 时间序列。",
         )
         .then((decision: PermissionDecision) => {
           if (decision === "granted") {
