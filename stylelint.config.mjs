@@ -5,6 +5,7 @@ export default {
     "**/node_modules/**",
     "**/target/**",
     "design-prototypes/**",
+    "design-previews/**",
     "design-qa-artifacts/**",
     "视觉稿件/**",
   ],

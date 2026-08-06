@@ -1,6 +1,7 @@
 import type { PluginContext } from "@tool-center/plugin-contract";
 
 import { fetchBinanceFuturesSnapshot } from "./binance-futures";
+import { fetchKrakenSpotSnapshot } from "./kraken-spot";
 import type {
   MarketInstrument,
   MarketRange,
@@ -12,7 +13,11 @@ import {
 } from "./twelve-data";
 
 export function canFetchWithoutCredential(instrument: MarketInstrument): boolean {
-  return instrument.kind === "futures" || supportsPublicDemo(instrument.symbol);
+  return (
+    instrument.kind === "futures" ||
+    instrument.kind === "crypto" ||
+    supportsPublicDemo(instrument.symbol)
+  );
 }
 
 export async function fetchMarketSnapshot(
@@ -23,6 +28,9 @@ export async function fetchMarketSnapshot(
 ): Promise<MarketSnapshot> {
   if (instrument.kind === "futures") {
     return fetchBinanceFuturesSnapshot(context, instrument, range);
+  }
+  if (instrument.kind === "crypto") {
+    return fetchKrakenSpotSnapshot(context, instrument, range);
   }
   return fetchTwelveDataSnapshot(
     context,

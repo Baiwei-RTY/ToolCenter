@@ -26,10 +26,10 @@
 - 内置 `toolcenter.hdr-toggle` Widget 已接入插件中心，支持选择目标显示器、读取 HDR 状态以及按实例保存选择；
 - `PluginContext.credentials` 已接入 Windows 凭据管理器，只提供写入、存在性检查与删除，前端无法读回明文；
 - `PluginContext.network` 已接入共享 Rust HTTPS GET 服务，包含 `network.request` 二次校验、凭据头注入、超时、响应上限和本地目标拦截；
-- 内置 `toolcenter.market-watch` Page + Widget 已接入插件中心，支持 Twelve Data 免费行情、Binance 公共数字资产期货、自选产品、60 秒可见刷新、折线 / K 线和 1 日 / 5 日 / 1 月切换；
+- 内置 `toolcenter.market-watch` Page + Widget 已按确认稿重构为简约深色行情终端，支持 Twelve Data 股票/外汇、Kraken 公共现货、Binance 公共数字资产期货、自选产品、按供应商免费额度节流的可见刷新、折线 / K 线、1 日 / 5 日 / 1 月、滚轮缩放和按住拖动平移；
 - 已接入视觉交接 v1.0.2 的正式应用图标；
 - 已建立固定 `正式版/ToolCenter.exe` 输出，以及插件直接进入真实 ToolCenter 桌面壳的开发命令。
-- 本轮外观重构在 `codex/material3-plugin-center-integration` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
+- 本轮市场行情重构在 `codex/market-watch-dark-terminal` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
 
 ## 等待后续设计输入
 

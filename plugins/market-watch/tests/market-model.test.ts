@@ -58,7 +58,7 @@ describe("market watch demo data", () => {
     expect(second).toEqual(first);
     expect(first.price).toBeCloseTo(213.87, 6);
     expect(first.change).toBeCloseTo(2.41, 6);
-    expect(first.bars.length).toBe(78);
+    expect(first.bars.length).toBe(260);
     expect(first.bars.every((bar) => bar.high >= bar.low)).toBe(true);
   });
 

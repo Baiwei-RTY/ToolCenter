@@ -12,6 +12,7 @@ export default tseslint.config(
       "**/target/**",
       "**/*.generated.ts",
       "design-prototypes/**",
+      "design-previews/**",
       "design-qa-artifacts/**",
       "视觉稿件/**",
     ],

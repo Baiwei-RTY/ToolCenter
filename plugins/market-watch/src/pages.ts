@@ -5,7 +5,7 @@ export const pages: PageEntrypointModule["pages"] = [
   {
     id: "market-watch-settings",
     route: "/market-watch-settings",
-    title: "市场行情设置",
+    title: "市场行情",
     component: lazy(() => import("./MarketWatchPage")),
   },
 ];

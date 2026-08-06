@@ -70,6 +70,13 @@ export function useMarketWatch(
   const snapshotKeyRef = useRef("");
   const operationRef = useRef(0);
   const storageKey = widgetStorageKey(instanceId);
+  const selectedInstrument = settings.instruments.find(
+    (instrument) => instrument.symbol === preferences.symbol,
+  );
+  const autoRefreshIntervalMs =
+    selectedInstrument?.kind === "crypto" || selectedInstrument?.kind === "futures"
+      ? 60_000
+      : 120_000;
 
   const loadSnapshot = useCallback(
     async (
@@ -320,7 +327,7 @@ export function useMarketWatch(
     }
     const release = context.scheduler.register({
       id: `market-watch:${instanceId}`,
-      intervalMs: 60_000,
+      intervalMs: autoRefreshIntervalMs,
       runWhenHidden: false,
       priority: "low",
       callback: () => refreshFromSharedSettings(false),
@@ -328,7 +335,13 @@ export function useMarketWatch(
     return () => {
       void release();
     };
-  }, [context.scheduler, instanceId, refreshFromSharedSettings, visible]);
+  }, [
+    autoRefreshIntervalMs,
+    context.scheduler,
+    instanceId,
+    refreshFromSharedSettings,
+    visible,
+  ]);
 
   const persistPreferences = useCallback(
     (next: WidgetPreferences) => {
@@ -378,7 +391,7 @@ export function useMarketWatch(
       void context.permissions
         .request(
           "network.request",
-          "用于从 Twelve Data 或 Binance 公共行情接口读取所选金融产品的最新价格与 OHLC 时间序列。",
+          "用于从 Twelve Data、Kraken 或 Binance 公共行情接口读取所选金融产品的最新价格与 OHLC 时间序列。",
         )
         .then((decision: PermissionDecision) => {
           if (decision === "granted") {

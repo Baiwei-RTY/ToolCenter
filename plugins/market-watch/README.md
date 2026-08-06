@@ -1,6 +1,6 @@
 # 市场行情
 
-ToolCenter 第一方金融行情插件。它在共享 Widget Host 内显示最新报价，并在同一个小组件中切换折线图和 K 线图；设置页用于维护免费数据源和自选产品。
+ToolCenter 第一方金融行情插件。Page 与 Widget 共用简约深色行情终端，可切换折线图 / K 线图、时间范围与自选产品；设置面板用于维护免费数据源、Twelve Data 凭据和自选列表。
 
 ## 当前版本
 
@@ -9,8 +9,8 @@ ToolCenter 第一方金融行情插件。它在共享 Widget Host 内显示最�
 - 默认尺寸：Wide 520×220
 - 支持尺寸：Small 260×160、Medium 360×220、Wide 520×220
 - 权限：`network.request`
-- 数据源：[Twelve Data](https://twelvedata.com/docs) Basic 免费方案与公开 demo、[Binance USDⓈ-M Futures](https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/Introduction) 公共行情
-- 自动刷新：小组件可见时约 60 秒；隐藏或卸载后停止
+- 数据源：[Twelve Data](https://twelvedata.com/docs) Basic 免费方案与公开 demo、[Kraken Spot REST](https://docs.kraken.com/api-reference/market-data/get-ohlc-data) 公共现货 OHLC、[Binance USDⓈ-M Futures](https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/Introduction) 公共期货行情
+- 自动刷新：数字资产可见时约 60 秒，Twelve Data 产品约 120 秒；隐藏或卸载后停止
 
 ## 功能边界
 
@@ -19,11 +19,13 @@ ToolCenter 第一方金融行情插件。它在共享 Widget Host 内显示最�
 - 股票、外汇、现货数字资产、商品和数字资产期货代码的自选列表；
 - 折线图 / K 线图即时切换；
 - 1 日 / 5 日 / 1 月范围切换；
+- 鼠标滚轮按光标位置放大时间细节，按住鼠标左键拖动左右查看，按 `0` 或 `Home` 恢复完整范围；
 - 每个 Widget 实例独立保存产品、图表类型和时间范围；
 - 手动刷新、加载、空数据、未配置、权限申请/拒绝、网络不可用和错误重试状态；
 - 浏览器开发模式中按产品和时间范围生成的确定性演示数据；
 - 刷新失败时保留最后一次成功快照，并明确标记“离线缓存”；
-- AAPL、EUR/USD、BTC/USD 无 Key 公开演示；
+- AAPL、EUR/USD 使用 Twelve Data 无 Key 公开演示；
+- BTC/USD 等现货数字资产使用 Kraken 公共 OHLC，无需 API Key；
 - Binance USDⓈ-M 数字资产期货免 Key 行情；
 - Windows 凭据管理器保存可选的 Twelve Data 免费 API Key。
 
@@ -37,15 +39,16 @@ ToolCenter 第一方金融行情插件。它在共享 Widget Host 内显示最�
 
 ## 数据实时性
 
-股票、外汇和现货数字资产使用 Twelve Data REST `time_series`；数字资产期货使用 Binance USDⓈ-M REST `klines`。刷新频率和实际延迟受接口限额、交易所、品种和市场状态影响，因此界面显示的是“最新获取到的数据”，不是交易撮合级实时流。
+股票、外汇和商品使用 Twelve Data REST `time_series`；现货数字资产使用 Kraken REST `OHLC`；数字资产期货使用 Binance USDⓈ-M REST `klines`。刷新频率和实际延迟受接口限额、交易所、品种和市场状态影响，因此界面显示的是“最新获取到的数据”，不是交易撮合级实时流。
 
 - Twelve Data 1 日 / 5 日 / 1 月：1 分钟 390 条 / 15 分钟 130 条 / 日线 32 条；
+- Kraken 现货 1 日 / 5 日 / 1 月：5 分钟 288 条 / 15 分钟 480 条 / 1 小时 720 条（接口最多返回最近 720 根已完成与当前周期数据）；
 - Binance 期货 1 日 / 5 日 / 1 月：5 分钟 288 条 / 1 小时 120 条 / 8 小时 90 条；
-- 小组件可见时约每 60 秒刷新一次。
+- 小组件可见时，Kraken/Binance 产品约每 60 秒刷新；Twelve Data 产品约每 120 秒刷新，以降低免费日额度耗尽概率。
 
-Twelve Data 的 `demo` 仅用于 AAPL、EUR/USD 和 BTC/USD。Basic 免费方案需要注册免费 API Key，可覆盖实时美股、外汇和现货数字资产；商品以及传统交易所期货通常需要更高套餐或额外市场数据授权。当前免费期货入口明确限定为 Binance USDⓈ-M 数字资产期货，例如 `BTCUSDT`。
+Twelve Data 的 `demo` 在本插件中仅用于 AAPL 和 EUR/USD。Basic 免费方案需要注册免费 API Key；免费额度与个人使用条款以供应商当前说明为准。商品以及传统交易所期货通常需要更高套餐或额外市场数据授权。当前免费数字资产入口限定为 Kraken 现货（例如 `BTC/USD`）和 Binance USDⓈ-M 期货（例如 `BTCUSDT`）。
 
-默认自选产品为 AAPL、MSFT、EUR/USD、BTC/USD、BTCUSDT、ETHUSDT 和 SOLUSDT。其中 MSFT 等非 demo 的 Twelve Data 产品需要用户自己的免费 API Key；三个 Binance USDⓈ-M 产品不需要 Key。
+默认自选产品为 AAPL、MSFT、EUR/USD、BTC/USD、BTCUSDT、ETHUSDT 和 SOLUSDT。其中 MSFT 等非 demo 的 Twelve Data 产品需要用户自己的免费 API Key；Kraken 现货与三个 Binance USDⓈ-M 产品不需要 Key。
 
 ## 安全与隐私
 
@@ -57,7 +60,7 @@ Twelve Data 的 `demo` 仅用于 AAPL、EUR/USD 和 BTC/USD。Basic 免费方案
 4. 需要 Key 时插件只传 `credentialKey`，Rust 从凭据管理器读取并注入 `Authorization` 请求头；
 5. API Key 不写入 JSON、日志、Git 或插件 README。
 
-公开 demo 和 Binance 期货请求不携带凭据。所有网络请求仍由共享 Rust HTTPS 服务执行并再次校验 `network.request`。宿主只允许 HTTPS GET、标准 443 端口、公开域名、有限响应大小和短超时，并禁止重定向、localhost 与 IP 字面量目标。
+Twelve Data 公开 demo、Kraken 现货和 Binance 期货请求不携带凭据。所有网络请求仍由共享 Rust HTTPS 服务执行并再次校验 `network.request`。宿主只允许 HTTPS GET、标准 443 端口、公开域名、有限响应大小和短超时，并禁止重定向、localhost 与 IP 字面量目标。
 
 非秘密设置使用：
 
@@ -94,10 +97,10 @@ corepack pnpm exec stylelint "plugins/market-watch/src/**/*.css"
 ## 桌面验收
 
 1. 在插件管理中启用“市场行情”，进入设置页；
-2. 不填写 API Key，验证 AAPL 或 BTCUSDT 的公开连接；
+2. 不填写 API Key，分别验证 AAPL、BTC/USD 和 BTCUSDT 的公开连接；
 3. 首次验证连接时允许 `network.request`；
 4. 在桌面小组件页创建 Wide 市场行情；
-5. 验证折线 / K 线与 1 日 / 5 日 / 1 月均可切换；
+5. 验证折线 / K 线与 1 日 / 5 日 / 1 月均可切换；滚轮可缩放，按住左键可左右拖动，`0` 可复位；
 6. 验证 Small、Medium、Wide 无裁切、横向滚动或控件重叠；
 7. 创建两个实例，确认各自选择互不影响；
 8. 隐藏 Widget 超过一个刷新周期，确认没有继续请求；

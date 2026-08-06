@@ -3,7 +3,7 @@ import { definePlugin } from "@tool-center/plugin-contract";
 export default definePlugin({
   id: "toolcenter.market-watch",
   name: "市场行情",
-  description: "在桌面小组件中查看股票、外汇、数字资产与期货等金融产品的最新行情和图表。",
+  description: "以简约深色终端查看股票、外汇、数字资产与期货行情，支持折线、K 线、缩放和平移。",
   version: "0.1.0",
   category: "金融工具",
   minHostVersion: "0.1.0",
@@ -15,7 +15,7 @@ export default definePlugin({
     pages: [
       {
         id: "market-watch-settings",
-        title: "市场行情设置",
+        title: "市场行情",
         route: "/market-watch-settings",
       },
     ],

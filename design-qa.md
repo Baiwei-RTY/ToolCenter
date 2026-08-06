@@ -1,5 +1,41 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：市场行情简约深色终端
+
+### 基线与证据
+
+- 设计来源：`design-previews/market-watch-dark-terminal/design-qa-artifacts/reference-selected-concept-2.png`，1928×815；
+- 实现入口：`/plugin/toolcenter.market-watch/market-watch-settings`；
+- 实现截图：`design-qa-artifacts/market-watch-formal-terminal-pass3-normalized.png`；
+- 同画布对照：`design-qa-artifacts/market-watch-comparison-pass3-side-by-side.png`；
+- 局部对照：`design-qa-artifacts/market-watch-comparison-pass3-header.png` 与 `design-qa-artifacts/market-watch-comparison-pass3-chart.png`；
+- 浏览器验收视口：1666×1000 CSS px；终端实际区域 1482.4×626.625 CSS px，截图裁切后归一化为 1928×815；
+- 状态：AAPL、折线、1 日、在线演示快照。真实 Tauri 环境改用当前市场数据，曲线路径与价格会自然变化。
+
+### 对照与修正
+
+- 第 1 轮发现外层宿主裁切、标题字号偏小、浏览器演示状态与参考稿不同，均已修正；
+- 第 2 轮校准标题、报价、控制栏、坐标标签、交易时段文案、边框、渐变与图表占比；
+- 第 3 轮修复按钮继承字体造成的产品名称字重偏差，并将演示曲线的价格范围对齐参考坐标；
+- 终端边界、圆角、深色表面、顶部控制区、报价层级、蓝色图表、右侧坐标和底部交易时段与参考稿保持一致；
+- 参考稿中的行情路径属于静态示例，正式版保留真实 OHLC 数据路径，不把静态曲线写入真实数据分支；
+- P0/P1/P2 未解决项：无。截图格式转换造成的轻微文字抗锯齿差异及实时曲线路径变化记录为可接受的 P3。
+
+### 功能、响应式与无障碍
+
+- 已实际点击验证产品切换、折线 / K 线、1 日 / 5 日 / 1 月、刷新和设置面板；
+- 已用鼠标滚轮验证时间窗口从 `0–64` 缩放为 `7–61`，再按住左键拖动为 `11–64`；按 `0` 恢复 `0–64`；
+- 900×800 与 620×780 视口下页面和终端 `scrollWidth === clientWidth`，无横向溢出或控件重叠；
+- 原生按钮、`aria-pressed`、图表 `role="application"`、可访问名称、键盘 `+/-/0/Home` 和焦点轮廓已覆盖；
+- 产品选择已改为语义正确的 `menu/menuitemradio`；设置对话框具备焦点闭环、Esc 关闭和关闭后焦点恢复；
+- 使用独立应用标识启动真实 Tauri 候选壳，确认插件按需加载、深色终端在原生 WebView2 中正常呈现，并正确进入“等待网络授权”状态；测试没有改写正式版设置；
+- Kraken 公共 OHLC 端点实测 HTTP 200 并返回 721 行；当前网络对 Twelve Data 与 Binance 建连时出现 TLS 重置，因此这两个供应商的真实行情仍需在用户允许 `network.request` 且网络可达时复验；
+- 浏览器控制台无应用错误；仅有 Vite/React 开发提示与 Lit 开发模式提示，生产构建不包含这些开发提示。
+
+final result: passed
+
+---
+
 ## 当前复验：概览页图标与文字对齐
 
 ### 对照证据
