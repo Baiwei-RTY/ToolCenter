@@ -23,6 +23,11 @@ import "@mdui/icons/refresh--rounded.js";
 import "@mdui/icons/settings--rounded.js";
 
 import {
+  dateFromProviderTimestamp,
+  formatAxisTimestamp,
+  resolveAxisTimestampMode,
+} from "./chart-time";
+import {
   type ChartType,
   type MarketBar,
   type MarketRange,
@@ -622,6 +627,11 @@ function buildChartOption(
   const referenceTimeLabels = useCompactReferenceLabels
     ? COMPACT_REFERENCE_TIME_LABELS
     : REFERENCE_TIME_LABELS;
+  const axisTimestampMode = resolveAxisTimestampMode(
+    bars.map((bar) => bar.timestamp),
+    range,
+    isFullView,
+  );
   const keyIndexes = isReferencePreview
     ? referenceTimeFractions.map((fraction) =>
         Math.round(fraction * Math.max(0, bars.length - 1)),
@@ -634,7 +644,7 @@ function buildChartOption(
       index,
       isReferencePreview
         ? referenceTimeLabels[labelIndex]
-        : formatAxisTimestamp(bars[index]?.timestamp, range),
+        : formatAxisTimestamp(bars[index]?.timestamp, axisTimestampMode),
     ]),
   );
   const categories = bars.map((_, index) => index);
@@ -918,26 +928,6 @@ function getVisibleBounds(totalPoints: number, zoom: ZoomWindow) {
   return { startIndex, endIndex };
 }
 
-function formatAxisTimestamp(value: string | undefined, range: MarketRange): string {
-  if (!value) {
-    return "";
-  }
-  const date = dateFromProviderTimestamp(value);
-  if (!date) {
-    return value.slice(-5);
-  }
-  return range === "1d"
-    ? new Intl.DateTimeFormat("zh-CN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }).format(date)
-    : new Intl.DateTimeFormat("zh-CN", {
-        month: "numeric",
-        day: "numeric",
-      }).format(date);
-}
-
 function formatTooltipTimestamp(value: string): string {
   const date = dateFromProviderTimestamp(value);
   if (!date) {
@@ -950,12 +940,6 @@ function formatTooltipTimestamp(value: string): string {
     minute: "2-digit",
     hour12: false,
   }).format(date);
-}
-
-function dateFromProviderTimestamp(value: string): Date | null {
-  const normalized = value.includes("T") ? value : value.replace(" ", "T");
-  const date = new Date(normalized);
-  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function formatPrice(value: number): string {
