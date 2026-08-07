@@ -1,5 +1,153 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：市场行情简约深色终端
+
+### 基线与证据
+
+- 设计来源：`design-previews/market-watch-dark-terminal/design-qa-artifacts/reference-selected-concept-2.png`，1928×815；
+- 实现入口：`/plugin/toolcenter.market-watch/market-watch-settings`；
+- 实现截图：`design-qa-artifacts/market-watch-formal-terminal-pass3-normalized.png`；
+- 同画布对照：`design-qa-artifacts/market-watch-comparison-pass3-side-by-side.png`；
+- 局部对照：`design-qa-artifacts/market-watch-comparison-pass3-header.png` 与 `design-qa-artifacts/market-watch-comparison-pass3-chart.png`；
+- 浏览器验收视口：1666×1000 CSS px；终端实际区域 1482.4×626.625 CSS px，截图裁切后归一化为 1928×815；
+- 状态：AAPL、折线、1 日、在线演示快照。真实 Tauri 环境改用当前市场数据，曲线路径与价格会自然变化。
+
+### 对照与修正
+
+- 第 1 轮发现外层宿主裁切、标题字号偏小、浏览器演示状态与参考稿不同，均已修正；
+- 第 2 轮校准标题、报价、控制栏、坐标标签、交易时段文案、边框、渐变与图表占比；
+- 第 3 轮修复按钮继承字体造成的产品名称字重偏差，并将演示曲线的价格范围对齐参考坐标；
+- 终端边界、圆角、深色表面、顶部控制区、报价层级、蓝色图表、右侧坐标和底部交易时段与参考稿保持一致；
+- 参考稿中的行情路径属于静态示例，正式版保留真实 OHLC 数据路径，不把静态曲线写入真实数据分支；
+- P0/P1/P2 未解决项：无。截图格式转换造成的轻微文字抗锯齿差异及实时曲线路径变化记录为可接受的 P3。
+
+### 功能、响应式与无障碍
+
+- 已实际点击验证产品切换、折线 / K 线、1 日 / 5 日 / 1 月、刷新和设置面板；
+- 已用鼠标滚轮验证时间窗口从 `0–64` 缩放为 `7–61`，再按住左键拖动为 `11–64`；按 `0` 恢复 `0–64`；
+- 900×800 与 620×780 视口下页面和终端 `scrollWidth === clientWidth`，无横向溢出或控件重叠；
+- 原生按钮、`aria-pressed`、图表 `role="application"`、可访问名称、键盘 `+/-/0/Home` 和焦点轮廓已覆盖；
+- 产品选择已改为语义正确的 `menu/menuitemradio`；设置对话框具备焦点闭环、Esc 关闭和关闭后焦点恢复；
+- 使用独立应用标识启动真实 Tauri 候选壳，确认插件按需加载、深色终端在原生 WebView2 中正常呈现，并正确进入“等待网络授权”状态；测试没有改写正式版设置；
+- Kraken 公共 OHLC 端点实测 HTTP 200 并返回 721 行；当前网络对 Twelve Data 与 Binance 建连时出现 TLS 重置，因此这两个供应商的真实行情仍需在用户允许 `network.request` 且网络可达时复验；
+- 浏览器控制台无应用错误；仅有 Vite/React 开发提示与 Lit 开发模式提示，生产构建不包含这些开发提示。
+
+final result: passed
+
+---
+
+## 当前复验：概览页图标与文字对齐
+
+### 对照证据
+
+- 用户反馈截图：`design-qa-artifacts/overview-alignment-user-before.png`，为 Windows 显示缩放下的 1905×1339 物理像素截屏；
+- 浏览器实现截图：`design-qa-artifacts/overview-alignment-browser-after-1487x1058.jpg`，视口为 1487×1058 CSS px；
+- 原生候选截图：`design-qa-artifacts/native-overview-alignment-after-1489x1060.jpg`，Tauri/WebView2 窗口为 1489×1060 px；
+- 用户截图与原生候选同画布对照：`design-qa-artifacts/overview-alignment-before-vs-native-after.jpg`。由于原截图包含 Windows 显示缩放和桌面边缘，对照重点为侧栏、快速操作、空状态和卡片标题的相对位置，不进行原始像素差分。
+
+### 修正前问题
+
+- P2：快速操作卡片的标题区、70 px 操作项和内边距合计超过 142 px 容器的可用高度，图标与文字组合偏下并贴近底边；
+- P2：侧栏图标宿主高度与标签间距偏大，图标和文字虽然处于同一列，但视觉上被拆成两组；
+- P2：概览标题、欢迎信息、空状态和右上角操作链接缺少明确行高，WebView2 字体度量会产生 1–3 px 的基线漂移；
+- P2：运行任务名称使用普通行内图标，动态内容出现时不能保证图标与文字垂直居中。
+
+### 修正与复验结果
+
+- 快速操作改为固定 60 px 双行网格，图标与标签均使用 20 px 盒模型、20 px 行高和 6 px 纵向间距；5 项图标/文字水平中心偏差均为 0 px，网格距卡片底部 17 px；
+- 侧栏图标统一为 28×28 px，图标宿主高度收紧为 36 px，标签行高固定为 20 px；6 个入口的图标与标签水平中心偏差均为 0 px；
+- 概览标题、欢迎信息、空状态、状态横幅和区域操作链接补齐明确行高，运行任务名称改为 `inline-flex` 垂直居中；
+- 1487×1058 浏览器视口的 `scrollWidth` 与视口宽度一致，无横向溢出；控制台无 error，仅保留开发模式下 Lit 的既有提示；
+- 1489×1060 原生候选中，侧栏、快速操作、收藏空状态、最近使用空状态、正在执行空状态和状态横幅均通过视觉复验；颜色、文案、功能入口与正式能力未改变；
+- P0/P1/P2 未解决项：无。
+
+**当前复验结果：passed**
+
+---
+
+## 当前复验：原生候选版与 Material 3 确认稿一致性修正
+
+### 修正前证据
+
+- 设计基准：`视觉稿件/ToolCenter-Material3-第二套紫色变体-v5/01.png`，1487×1058、浅色、市场行情选中；
+- 原生候选截图：`design-qa-artifacts/native-candidate-before-tools-1202x802-dark.jpg`；
+- 浏览器同尺寸截图：`design-qa-artifacts/browser-preview-current-1202x802-light.png`；
+- 设计稿与当前实现同画布对照：`design-qa-artifacts/reference-vs-current-before-1487x1058.png`。
+
+### 修正前问题
+
+- P1：候选版继承旧设置后打开旧概览页和系统深色主题，与确认稿的 `/tools` 浅色首屏不同；
+- P1：MDUI 深色主题类未启用，Shadow DOM 组件仍使用浅色前景令牌，出现黑字、按钮和背景混色；
+- P1：候选默认窗口为 1200×800，确认稿为 1487×1058，触发整套 `<=1280px` 缩小规则并裁去 258px 内容高度；
+- P2：MDUI Chip/Button 使用了无效尺寸变量和错误 Shadow Part，图标未使用官方 `icon` slot；
+- P2：旧 `.tool-list` 的 `gap: 10px` 串入新插件中心，列表分隔与纵向位置偏移；
+- P2：品牌、命令入口、页面、小组件和便签等图标与确认稿语义或轮廓不一致。
+
+### 修正后证据
+
+- 浏览器确认尺寸：`design-qa-artifacts/browser-after-final-1487x1058.png`；
+- 浏览器紧凑尺寸：`design-qa-artifacts/browser-after-fix-1202x802-v2.png`；
+- 浏览器深色插件中心：`design-qa-artifacts/browser-dark-theme-tools-1487x1058.png`；
+- 原生候选程序：`design-qa-artifacts/native-candidate-after-final-1489x1060.jpg`；
+- 设计稿与原生候选同画布对照：`design-qa-artifacts/reference-vs-native-after-1487x1058.jpg`。
+
+### 修正结果
+
+- P1：旧设置一次性迁移到 `/tools`、浅色主题和当前注册表顺序；插件启停、收藏、最近使用、权限、存储、Widget 与凭据不变；
+- P1：文件夹候选构建使用独立应用标识与数据目录，测试前的原版设置已原样恢复；候选版不会再改写正式版或旧候选版的主题、首页与插件排序；
+- P1：MDUI 浅色/深色主题类与启动器 Design Tokens 同步，深色插件中心和设置页均无错误前景色；
+- P1：默认原生窗口改为 1487×1058 并居中；短高度窗口使用独立紧凑规则，不再裁切固定头部和底栏；
+- P2：Chip/Button 使用真实 host 尺寸、`::part(button)` 与官方图标 slot，标签、圆角和图标基线对齐；
+- P2：恢复 Noto Sans SC 首选字体，原生 WebView2 中文细笔画完整；MDUI rem 基准恢复 16px；
+- P2：HDR、命令入口、页面、小组件、便签、主题模式等图标均改用匹配语义的官方 `@mdui/icons`；
+- P2：原生候选、浏览器预览和设计稿的标题栏、导航轨、424px 主列表、详情头部、页签、内容边界与底栏位置一致；
+- P0/P1/P2 未解决项：无。品牌盾牌内部字母没有对应的官方 Material 图标，继续使用最接近的官方盾牌轮廓，记录为 P3。
+
+**当前复验结果：passed**
+
+---
+
+## 当前验收：Material 3 插件中心正式接入
+
+### 验收基线
+
+- 设计来源：`视觉稿件/ToolCenter-Material3-第二套紫色变体-v5/01.png`；
+- 实现页面：`/tools`，浅色主题，市场行情插件选中，全部插件处于启用状态；
+- 精确对照视口：1487×1058 CSS px，设备像素比 1；设计稿与实现截图均为 1487×1058 px；
+- 完整同画布对照：`design-qa-artifacts/material3-plugin-center-comparison-full.png`；
+- 标题栏、导航栏和插件列表局部对照：`design-qa-artifacts/material3-plugin-center-comparison-shell.png`；
+- 实现截图：`design-qa-artifacts/material3-plugin-center-implementation-1487x1058.png`；
+- 响应式复核：`design-qa-artifacts/material3-plugin-center-responsive-1280x720.png` 与 `design-qa-artifacts/material3-plugin-center-responsive-1024x720.png`，均无横向溢出或控件遮挡。
+
+### 实现与设计对照
+
+- 排版：标题栏、112 px 导航轨、424 px 插件主列表、详情头部、页签、内容和底部状态栏的分区边界与设计稿对齐；字体采用系统 UI 字体栈，字重存在不影响使用的 P3 级细微差异；
+- 色彩：主色、容器色、描边、成功状态和悬停/选中状态均由 Material 3 Design Tokens 驱动，紫色系与设计稿一致；
+- 图标：界面使用 `@mdui/icons` 的正式 Material 图标，不使用临时字符图标；设计稿中的品牌盾牌采用最接近的正式 Material 图标表达，属于可接受的 P3 差异；
+- 内容：设计稿中的行情图表仅作为插件业务示意。正式插件中心改为展示真实清单、入口、运行时、权限、存储和实例信息，避免把市场行情业务复制进启动器；点击“打开页面”仍进入原有插件页面；
+- 架构：保持单窗口、单 WebView；插件入口继续懒加载；启动器只通过现有运行时和 Rust 权限桥接能力工作，没有导入插件内部源码，也没有修改 `plugins/*`。
+
+### 交互验证
+
+- 选择插件、全部/页面/小组件/已启用筛选、搜索与清空均通过；
+- 插件启用/停用真实写入应用状态并调用运行时，验证后已恢复启用状态；
+- Page 插件可进入原有插件页面，Widget 插件可进入桌面实例页，Service 可进入运行状态页；
+- 内容、权限、存储和诊断页签可读取真实数据；权限修改沿用现有确认对话框与 Rust 二次校验；
+- 启动器路由计算值为 `--color-primary: #6750a4`，原插件页面容器计算值仍为 `#5b5fc7`，Widget Host 同样保留旧令牌；
+- 浏览器控制台无 error；仅开发模式出现 Lit 的开发构建提示，生产构建不包含该提示。
+
+### 修正记录
+
+- 第 1 轮：发现旧样式使概览卡片跨越全部网格列，导致摘要区堆叠；已限定当前插件中心网格作用域；
+- 第 2 轮：发现详情头部/底栏比例与设计稿有偏差且内容多出 22 px；已校准行高并仅展示非零贡献类型；
+- 最终复核：内容区 `scrollHeight` 与 `clientHeight` 均为 621 px，1487×1058 下无非预期溢出。
+
+**当前验收结果：passed**
+
+---
+
+## 历史验收：Light UI Kit 首轮实现
+
 ## 验收范围
 
 - 设计来源：`设计交接/02-即时设计导出/PNG/` 的 11 张 1440×900 画板；

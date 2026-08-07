@@ -74,7 +74,7 @@ export function SettingsPage() {
               <div className="theme-options" role="radiogroup" aria-label="主题模式">
                 {(["system", "light", "dark"] as const).map((theme) => (
                   <button key={theme} type="button" role="radio" aria-checked={state.theme === theme} onClick={() => state.updateSettings({ theme })}>
-                    <Icon name={theme === "dark" ? "activity" : theme === "light" ? "app" : "settings"} />
+                    <Icon name={theme === "dark" ? "dark" : theme === "light" ? "weather" : "settings"} />
                     <span>{theme === "system" ? "跟随系统" : theme === "light" ? "浅色" : "深色"}</span>
                     {state.theme === theme ? <Icon name="check" /> : null}
                   </button>

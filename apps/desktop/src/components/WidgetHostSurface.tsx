@@ -407,6 +407,7 @@ function WidgetMount({
       className="widget-host__instance"
       data-toolcenter-widget-region
       data-instance-id={instance.instanceId}
+      data-plugin-id={instance.pluginId}
       data-resizing={resizePreview ? "" : undefined}
       style={style}
     >

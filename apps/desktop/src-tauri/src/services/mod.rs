@@ -57,7 +57,7 @@ mod tests {
 
     use serde_json::json;
 
-    use super::validate_segment;
+    use super::{read_json, validate_segment};
     use crate::services::{permissions, settings, storage};
     use crate::state::CoreState;
 
@@ -91,6 +91,35 @@ mod tests {
             storage::read(&state, "toolcenter.two", "value").expect("value should load"),
             Some(json!(2))
         );
+
+        fs::remove_dir_all(directory).expect("temporary test directory should be removable");
+    }
+
+    #[test]
+    fn backs_up_legacy_settings_before_material3_migration() {
+        let directory = temporary_test_directory("settings-migration");
+        let state = CoreState::new(directory.clone());
+        let legacy = json!({
+            "defaultRoute": "/",
+            "theme": "system",
+            "enabledPluginIds": ["toolcenter.audio-device-switcher"]
+        });
+
+        settings::save(&state, &legacy).expect("legacy settings should save");
+        settings::save(
+            &state,
+            &json!({
+                "uiRevision": 1,
+                "defaultRoute": "/tools",
+                "theme": "light",
+                "enabledPluginIds": ["toolcenter.audio-device-switcher"]
+            }),
+        )
+        .expect("Material 3 settings should save");
+
+        let backup = read_json(&directory.join("app").join("settings.pre-material3-v1.json"))
+            .expect("settings backup should be readable");
+        assert_eq!(backup, Some(legacy));
 
         fs::remove_dir_all(directory).expect("temporary test directory should be removable");
     }

@@ -10,6 +10,7 @@ export interface RecentItem {
 }
 
 export interface LauncherSettings {
+  readonly uiRevision: number;
   readonly enabledPluginIds: readonly string[];
   readonly pluginOrder: readonly string[];
   readonly favoriteIds: readonly string[];
@@ -24,17 +25,19 @@ export interface LauncherSettings {
 }
 
 const browserStorageKey = "toolcenter.launcher.settings.v1";
+export const MATERIAL3_UI_REVISION = 1;
 
 export const defaultSettings: LauncherSettings = {
+  uiRevision: MATERIAL3_UI_REVISION,
   enabledPluginIds: [],
   pluginOrder: [],
   favoriteIds: [],
   recentItems: [],
-  defaultRoute: "/",
+  defaultRoute: "/tools",
   closeBehavior: "close",
   showTray: false,
   restoreWindow: true,
-  theme: "system",
+  theme: "light",
   reducedMotion: false,
   density: "standard",
 };
@@ -61,19 +64,47 @@ export function normalizeSettings(value: unknown): LauncherSettings {
     return defaultSettings;
   }
   const candidate = value as Partial<LauncherSettings>;
+  const legacySettings = hasLauncherSettings(candidate) && candidate.uiRevision === undefined;
   return {
+    uiRevision:
+      typeof candidate.uiRevision === "number" &&
+      Number.isFinite(candidate.uiRevision) &&
+      candidate.uiRevision >= 0
+        ? Math.floor(candidate.uiRevision)
+        : legacySettings
+          ? 0
+          : MATERIAL3_UI_REVISION,
     enabledPluginIds: stringArray(candidate.enabledPluginIds),
     pluginOrder: stringArray(candidate.pluginOrder),
     favoriteIds: stringArray(candidate.favoriteIds),
     recentItems: normalizeRecentItems(candidate.recentItems),
-    defaultRoute: typeof candidate.defaultRoute === "string" ? candidate.defaultRoute : "/",
+    defaultRoute:
+      typeof candidate.defaultRoute === "string" ? candidate.defaultRoute : defaultSettings.defaultRoute,
     closeBehavior: candidate.closeBehavior === "tray" ? "tray" : "close",
     showTray: candidate.showTray === true,
     restoreWindow: candidate.restoreWindow !== false,
     theme:
-      candidate.theme === "light" || candidate.theme === "dark" ? candidate.theme : "system",
+      candidate.theme === "light" || candidate.theme === "dark" || candidate.theme === "system"
+        ? candidate.theme
+        : defaultSettings.theme,
     reducedMotion: candidate.reducedMotion === true,
     density: candidate.density === "compact" ? "compact" : "standard",
+  };
+}
+
+export function migrateMaterial3Ui(
+  settings: LauncherSettings,
+  pluginIds: readonly string[],
+): LauncherSettings {
+  if (settings.uiRevision >= MATERIAL3_UI_REVISION) {
+    return settings;
+  }
+  return {
+    ...settings,
+    uiRevision: MATERIAL3_UI_REVISION,
+    defaultRoute: settings.defaultRoute === "/" ? "/tools" : settings.defaultRoute,
+    theme: settings.theme === "system" ? "light" : settings.theme,
+    pluginOrder: [...pluginIds],
   };
 }
 
@@ -84,6 +115,22 @@ function readBrowserSettings(): unknown {
   } catch {
     return null;
   }
+}
+
+function hasLauncherSettings(candidate: Partial<LauncherSettings>): boolean {
+  return [
+    "enabledPluginIds",
+    "pluginOrder",
+    "favoriteIds",
+    "recentItems",
+    "defaultRoute",
+    "closeBehavior",
+    "showTray",
+    "restoreWindow",
+    "theme",
+    "reducedMotion",
+    "density",
+  ].some((key) => Object.hasOwn(candidate, key));
 }
 
 function stringArray(value: unknown): readonly string[] {

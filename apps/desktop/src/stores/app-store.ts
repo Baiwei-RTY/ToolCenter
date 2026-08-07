@@ -1,7 +1,11 @@
 import { create } from "zustand";
 
 import type { LauncherSettings, RecentItem } from "../services/settings-repository";
-import { defaultSettings, settingsRepository } from "../services/settings-repository";
+import {
+  defaultSettings,
+  migrateMaterial3Ui,
+  settingsRepository,
+} from "../services/settings-repository";
 
 interface AppStoreState extends LauncherSettings {
   initialized: boolean;
@@ -31,20 +35,25 @@ export const useAppStore = create<AppStoreState>((set) => ({
   async initialize(pluginIds) {
     const loaded = await settingsRepository.load();
     const isFirstRun = loaded.pluginOrder.length === 0 && loaded.enabledPluginIds.length === 0;
+    const migrated = migrateMaterial3Ui(loaded, pluginIds);
     const enabledPluginIds =
       isFirstRun
         ? [...pluginIds]
-        : loaded.enabledPluginIds.filter((id) => pluginIds.includes(id));
-    const missingOrderIds = pluginIds.filter((id) => !loaded.pluginOrder.includes(id));
-    set({
-      ...loaded,
+        : migrated.enabledPluginIds.filter((id) => pluginIds.includes(id));
+    const missingOrderIds = pluginIds.filter((id) => !migrated.pluginOrder.includes(id));
+    const settings: LauncherSettings = {
+      ...migrated,
       enabledPluginIds,
       pluginOrder: [
-        ...loaded.pluginOrder.filter((id) => pluginIds.includes(id)),
+        ...migrated.pluginOrder.filter((id) => pluginIds.includes(id)),
         ...missingOrderIds,
       ],
+    };
+    set({
+      ...settings,
       initialized: true,
     });
+    await settingsRepository.save(settings);
     startPersistence();
   },
 
@@ -106,6 +115,7 @@ function startPersistence(): void {
 
 function selectPersistedSettings(state: AppStoreState): LauncherSettings {
   return {
+    uiRevision: state.uiRevision,
     enabledPluginIds: state.enabledPluginIds,
     pluginOrder: state.pluginOrder,
     favoriteIds: state.favoriteIds,

@@ -14,10 +14,11 @@
       {
         "label": "main",
         "title": "ToolCenter",
-        "width": 1200,
-        "height": 800,
+        "width": 1487,
+        "height": 1058,
         "minWidth": 900,
         "minHeight": 600,
+        "center": true,
         "decorations": false,
         "resizable": true,
         "visible": true
