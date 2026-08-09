@@ -1,7 +1,12 @@
-export const STICKY_NOTES_SCHEMA_VERSION = 1;
-export const NOTE_MAX_LENGTH = 4_000;
+export const STICKY_NOTES_SCHEMA_VERSION = 2;
+export const DEFAULT_TITLE = "本周安排";
+export const TITLE_MAX_LENGTH = 120;
+export const BODY_MAX_LENGTH = 4_000;
 export const TODO_MAX_LENGTH = 120;
 export const TODO_MAX_ITEMS = 50;
+export const SPLIT_MIN_PERCENT = 28;
+export const SPLIT_MAX_PERCENT = 64;
+export const DEFAULT_SPLIT_PERCENT = 46.5;
 
 export interface StickyTodo {
   readonly id: string;
@@ -11,14 +16,18 @@ export interface StickyTodo {
 
 export interface StickyNotesDocument {
   readonly schemaVersion: typeof STICKY_NOTES_SCHEMA_VERSION;
-  readonly note: string;
+  readonly title: string;
+  readonly body: string;
+  readonly splitPercent: number;
   readonly todos: readonly StickyTodo[];
 }
 
 export function createEmptyDocument(): StickyNotesDocument {
   return {
     schemaVersion: STICKY_NOTES_SCHEMA_VERSION,
-    note: "",
+    title: DEFAULT_TITLE,
+    body: "",
+    splitPercent: DEFAULT_SPLIT_PERCENT,
     todos: [],
   };
 }
@@ -28,7 +37,18 @@ export function normalizeDocument(value: unknown): StickyNotesDocument {
     return createEmptyDocument();
   }
 
-  const note = typeof value.note === "string" ? value.note.slice(0, NOTE_MAX_LENGTH) : "";
+  const title =
+    typeof value.title === "string"
+      ? value.title.slice(0, TITLE_MAX_LENGTH)
+      : DEFAULT_TITLE;
+  const bodySource =
+    typeof value.body === "string"
+      ? value.body
+      : typeof value.note === "string"
+        ? value.note
+        : "";
+  const body = bodySource.slice(0, BODY_MAX_LENGTH);
+  const splitPercent = normalizeSplitPercent(value.splitPercent);
   const sourceTodos = Array.isArray(value.todos) ? value.todos : [];
   const usedIds = new Set<string>();
   const todos: StickyTodo[] = [];
@@ -64,20 +84,44 @@ export function normalizeDocument(value: unknown): StickyNotesDocument {
 
   return {
     schemaVersion: STICKY_NOTES_SCHEMA_VERSION,
-    note,
+    title,
+    body,
+    splitPercent,
     todos,
   };
 }
 
-export function setNote(
+export function setTitle(
   document: StickyNotesDocument,
-  note: string,
+  title: string,
 ): StickyNotesDocument {
-  const limitedNote = note.slice(0, NOTE_MAX_LENGTH);
-  if (limitedNote === document.note) {
+  const limitedTitle = title.slice(0, TITLE_MAX_LENGTH);
+  if (limitedTitle === document.title) {
     return document;
   }
-  return { ...document, note: limitedNote };
+  return { ...document, title: limitedTitle };
+}
+
+export function setBody(
+  document: StickyNotesDocument,
+  body: string,
+): StickyNotesDocument {
+  const limitedBody = body.slice(0, BODY_MAX_LENGTH);
+  if (limitedBody === document.body) {
+    return document;
+  }
+  return { ...document, body: limitedBody };
+}
+
+export function setSplitPercent(
+  document: StickyNotesDocument,
+  splitPercent: number,
+): StickyNotesDocument {
+  const normalized = normalizeSplitPercent(splitPercent);
+  if (normalized === document.splitPercent) {
+    return document;
+  }
+  return { ...document, splitPercent: normalized };
 }
 
 export function addTodo(
@@ -135,12 +179,46 @@ export function removeTodo(
   };
 }
 
+export function reorderTodo(
+  document: StickyNotesDocument,
+  sourceId: string,
+  targetId: string,
+  after: boolean,
+): StickyNotesDocument {
+  if (sourceId === targetId) {
+    return document;
+  }
+
+  const source = document.todos.find((todo) => todo.id === sourceId);
+  if (!source || !document.todos.some((todo) => todo.id === targetId)) {
+    return document;
+  }
+
+  const todos = document.todos.filter((todo) => todo.id !== sourceId);
+  const targetIndex = todos.findIndex((todo) => todo.id === targetId);
+  todos.splice(targetIndex + (after ? 1 : 0), 0, source);
+
+  if (todos.every((todo, index) => todo.id === document.todos[index]?.id)) {
+    return document;
+  }
+  return { ...document, todos };
+}
+
 export function remainingTodoCount(document: StickyNotesDocument): number {
   return document.todos.filter((todo) => !todo.completed).length;
 }
 
 export function storageKeyForInstance(instanceId: string): string {
+  // Keep the established key so version 1 documents can be migrated in place.
   return `widget.${instanceId}.v1`;
+}
+
+function normalizeSplitPercent(value: unknown): number {
+  const requested = typeof value === "number" && Number.isFinite(value)
+    ? value
+    : DEFAULT_SPLIT_PERCENT;
+  const clamped = Math.min(SPLIT_MAX_PERCENT, Math.max(SPLIT_MIN_PERCENT, requested));
+  return Math.round(clamped * 10) / 10;
 }
 
 function uniqueId(requestedId: string, usedIds: ReadonlySet<string>): string {

@@ -27,9 +27,13 @@
 - `PluginContext.credentials` 已接入 Windows 凭据管理器，只提供写入、存在性检查与删除，前端无法读回明文；
 - `PluginContext.network` 已接入共享 Rust HTTPS GET 服务，包含 `network.request` 二次校验、凭据头注入、超时、响应上限和本地目标拦截；
 - 内置 `toolcenter.market-watch` Page + Widget 已按确认稿重构为简约深色行情终端，支持 Twelve Data 股票/外汇、Kraken 公共现货、Binance 公共数字资产期货、自选产品、按供应商免费额度节流的可见刷新、折线 / K 线、1 日 / 5 日 / 1 月、滚轮缩放和按住拖动平移；
+- 内置 `toolcenter.sticky-notes` Widget 已按确认稿重构为暖纸便签，支持独立标题与正文、清单拖动排序、可调上下分割线、顶部边缘拖动、旧版数据迁移和按实例持久化；
+- 暖纸便签已完成视觉稿同画布与局部对照、Small/Medium/Wide 响应式验收及浏览器核心交互回归；最新对齐复验已消除 MDUI 图标内部 SVG 的行高偏移，`.\toolcenter.cmd verify` 通过 83 项前端测试和 21 项 Rust 测试；
+- 暖纸便签已确认正式源码与预览使用同一 Windows 中文 UI 字体栈，并按归一化比例校准三档标题、清单、添加入口和保存状态字号；当前运行的预览基准、修改前/后截图及 Figma 标注板均已完成视觉复验，三档新增清单项后无横纵向溢出；
 - 已接入视觉交接 v1.0.2 的正式应用图标；
 - 已建立固定 `正式版/ToolCenter.exe` 输出，以及插件直接进入真实 ToolCenter 桌面壳的开发命令。
-- 本轮市场行情重构在 `codex/market-watch-dark-terminal` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
+- 本轮便签重构在 `codex/sticky-notes-warm-paper` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
+- 真实开发版 `target/debug/toolcenter-desktop.exe` 已成功启动；Windows 窗口捕获辅助器当前无法取得窗口状态，因此便签数据的真实重启恢复仍保留为人工桌面复验项。
 
 ## 等待后续设计输入
 

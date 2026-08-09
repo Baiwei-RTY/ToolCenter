@@ -1,5 +1,55 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：暖纸便签正式重构
+
+### 基线与证据
+
+- 设计来源：`design-previews/sticky-notes-warm-paper/design-qa-artifacts/reference-selected-concept-1.png`，1606×979；
+- 正式实现截图：`plugins/sticky-notes/design-qa-artifacts/formal-medium.png`，360×220；
+- 完整同画布对照：`plugins/sticky-notes/design-qa-artifacts/comparison-final.png`；
+- 清单与工具栏局部对照：`plugins/sticky-notes/design-qa-artifacts/comparison-focus-final.png`；
+- 响应式证据：`plugins/sticky-notes/design-qa-artifacts/formal-small.png` 与 `plugins/sticky-notes/design-qa-artifacts/formal-wide.png`；
+- 用户错位反馈：`plugins/sticky-notes/design-qa-artifacts/alignment-user-before-empty.png` 与 `plugins/sticky-notes/design-qa-artifacts/alignment-user-before-one-item.png`；
+- 对齐修正截图：`plugins/sticky-notes/design-qa-artifacts/alignment-after-450x262.png`；完整/局部同画布对照为 `plugins/sticky-notes/design-qa-artifacts/alignment-before-vs-after.png` 与 `plugins/sticky-notes/design-qa-artifacts/alignment-before-vs-after-focus.png`；
+- 字体一致性复验：当前运行预览基准为 `plugins/sticky-notes/design-qa-artifacts/font-calibration-reference-current-run-complete.png`，按 450 px 宽度归一化后为 `font-calibration-reference-normalized-450.png`；修改前、修改后分别为 `font-calibration-before-450x262.png` 与 `font-calibration-after-450x262.png`，三者同画布对照为 `font-calibration-comparison.png`；
+- Figma 标注板：`https://www.figma.com/design/Z9sjU6FbGvvGBIUmd0Rkbv?node-id=2-2`；本地渲染复验为 `plugins/sticky-notes/design-qa-artifacts/font-calibration-figma-board-rgb.png`；
+- 浏览器视口：1280×720 CSS px；组件实际尺寸 360×220 CSS px；`devicePixelRatio` 为 2，但浏览器截图按 CSS 像素输出为 1×；设计稿按相同比例归一化为 360×220 后比较；
+- 本轮对齐复验在同一 1280×720 CSS px 视口下使用 450×262 CSS px 组件、`devicePixelRatio: 2`；浏览器仍按 CSS 像素输出，状态为标题“本周安排”、单项清单“111”和“已保存”。
+- 状态：标题“本周安排”、空正文、5 个清单项、第 3 项完成、保存成功、Medium 尺寸。
+
+### 对照历史与修正
+
+- 第 1 轮 P2：宿主按钮重置覆盖了未完成复选框边框，导致空复选框视觉消失；标题与清单左侧留白也小于视觉稿。已提高插件内复选框规则作用域，并按参考比例校准 24 px 主内容边距、18 px 顶部边距、分割线与工具栏边界；
+- 第 1 轮 P2：标题获得焦点时继承宿主全局焦点外框，宿主控制条会干扰视觉稿。已为正文编辑区增加更高作用域的焦点规则，并把控制条限制为悬停或控制条自身焦点时显示；
+- 第 2 轮 P2：百分比尺寸让原 `check` Web Component 计算为 7.6×20.4 px，完成勾选不稳定。已改用 `@mdui/icons` 的正式 `check-box` 与 `check-box-outline-blank` 图标，并使用确定尺寸；
+- 第 3 轮 P2：用户实机截图显示 MDUI 图标的外盒虽已居中，但内部 SVG 受默认 24 px 行高影响，清单复选框下移 8 px，添加与保存图标下移 6 px。已将图标宿主行高归零；Small、Medium、Wide 三档复测中，图标 SVG 与相邻文字中心差均不超过 0.004 px；
+- 第 3 轮交互补充：便签顶部圆角边框拖动热区随后按实机反馈扩大，Medium/Wide 为 19 px 高、Small 为 13 px 高并向两侧延伸；热区下边缘与标题输入框上沿相接，右边缘与控制条保留 2 px 间隔，锁定时不接收指针事件；
+- 第 4 轮 P2：正式源码与预览均使用 `Microsoft YaHei UI` 优先的同一字体栈和 400 字重，但按 450 px 宽度归一化后，正式版标题/清单/添加/状态为 13/10/10/9 px，预览约为 14.7/11/10.5/9.8 px，因此产生“字体不同”的视觉感受。已将 Medium 校准为 14.5/11/10.5/10 px，并同步建立 Small 12/10/10/9 px、Wide 16/12/12/11 px 的响应比例；正文字号保持不变；
+- 最终同画布与局部对照未发现可执行的 P0/P1/P2 差异。参考稿的生成式纸张颗粒比实现更明显；正式实现保留稳定的暖纸纯色与轻微阴影，记录为不影响层级和使用的 P3。
+
+### 必查表面
+
+- 字体与排版：使用 Windows 中文 UI 字体栈；标题、清单、工具栏字号、字重、行高和截断与归一化参考稿处于同一视觉层级；Figma 板内说明文字使用已验证可用的 `Noto Sans SC`，截图本身保留产品实际字体渲染；
+- 间距与布局：圆角、内容边界、上部留白、分割线、5 行清单和底部工具栏位置已同画布核对；Small 通过滚轮浏览较长清单，Medium 与 Wide 可显示 5 行示例；
+- 颜色与令牌：暖白纸面、深灰正文、琥珀完成态、灰褐分割线和保存状态与参考稿一致；
+- 图像与图标：界面没有产品图片或品牌图；全部功能图标来自正式 `@mdui/icons`，没有字符图标、临时 SVG 或 CSS 图形；
+- 文案：标题、示例清单、“添加清单项”和“已保存”与参考稿一致。
+
+### 交互、响应式与可访问性
+
+- 已实际验证标题、正文、添加、完成、取消完成、删除和自动保存；
+- 已验证鼠标按住拖动清单排序，以及 `Alt + ↑/↓` 键盘排序；
+- 已验证鼠标上下拖动分割线，以及方向键、`Home`、`End` 调整；
+- 已验证 Small/Medium/Wide 顶部拖动热区分别为 188×13、338×19、488×19 CSS px，层级、抓取光标、标题/控制条避让和锁定保护均正确；宿主拖动判定继续由既有单元测试覆盖；
+- Small 260×160、Medium 360×220、Wide 520×220 均无横向溢出；Small 清单滚轮从偏移 14 恢复至 0，滚动正常；
+- 字号校准后重新添加单项清单并测量：三档根节点 `scrollWidth === clientWidth`、`scrollHeight === clientHeight`，添加入口与保存状态没有重叠；Small、Medium、Wide 的清单字号分别为 10、11、12 px；
+- 复选框使用原生按钮与 `role="checkbox"`，分割线具有数值语义，焦点轮廓与 Reduced Motion 均保留；
+- 三档正式 Host 预览控制台 error 均为 0。
+
+final result: passed
+
+---
+
 ## 当前验收：市场行情简约深色终端
 
 ### 基线与证据

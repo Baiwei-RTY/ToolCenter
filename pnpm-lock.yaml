@@ -193,6 +193,9 @@ importers:
 
   plugins/sticky-notes:
     dependencies:
+      '@mdui/icons':
+        specifier: 1.0.4
+        version: 1.0.4
       '@tool-center/plugin-contract':
         specifier: workspace:*
         version: link:../../packages/plugin-contract
