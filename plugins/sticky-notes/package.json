@@ -8,6 +8,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mdui/icons": "1.0.4",
     "@tool-center/plugin-contract": "workspace:*"
   },
   "peerDependencies": {

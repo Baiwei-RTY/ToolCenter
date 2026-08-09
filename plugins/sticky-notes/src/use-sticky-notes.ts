@@ -6,7 +6,10 @@ import {
   createEmptyDocument,
   normalizeDocument,
   removeTodo,
-  setNote,
+  reorderTodo,
+  setBody,
+  setSplitPercent,
+  setTitle,
   storageKeyForInstance,
   toggleTodo,
   type StickyNotesDocument,
@@ -22,10 +25,13 @@ export interface StickyNotesController {
   readonly loadStatus: LoadStatus;
   readonly saveStatus: SaveStatus;
   readonly errorMessage?: string;
-  setNoteText(note: string): void;
+  setTitleText(title: string): void;
+  setBodyText(body: string): void;
+  setSplitPosition(splitPercent: number): void;
   addTodoItem(text: string): boolean;
   toggleTodoItem(todoId: string): void;
   removeTodoItem(todoId: string): void;
+  reorderTodoItem(sourceId: string, targetId: string, after: boolean): void;
   flush(): void;
   retryLoad(): void;
   retrySave(): void;
@@ -196,8 +202,14 @@ export function useStickyNotes(
     loadStatus,
     saveStatus,
     errorMessage,
-    setNoteText: (note) => {
-      updateDocument((current) => setNote(current, note), false);
+    setTitleText: (title) => {
+      updateDocument((current) => setTitle(current, title), false);
+    },
+    setBodyText: (body) => {
+      updateDocument((current) => setBody(current, body), false);
+    },
+    setSplitPosition: (splitPercent) => {
+      updateDocument((current) => setSplitPercent(current, splitPercent), false);
     },
     addTodoItem: (text) => {
       const nextId =
@@ -210,6 +222,12 @@ export function useStickyNotes(
     },
     removeTodoItem: (todoId) => {
       updateDocument((current) => removeTodo(current, todoId), true);
+    },
+    reorderTodoItem: (sourceId, targetId, after) => {
+      updateDocument(
+        (current) => reorderTodo(current, sourceId, targetId, after),
+        true,
+      );
     },
     flush,
     retryLoad: () => {

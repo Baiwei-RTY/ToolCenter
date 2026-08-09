@@ -3,7 +3,7 @@ import { definePlugin } from "@tool-center/plugin-contract";
 export default definePlugin({
   id: "toolcenter.sticky-notes",
   name: "桌面便签",
-  description: "随手记录文字，并在便签内添加可勾选的清单项。",
+  description: "在暖纸便签中记录标题、正文和可排序清单。",
   version: "0.1.0",
   category: "效率",
   minHostVersion: "0.1.0",
