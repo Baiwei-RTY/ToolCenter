@@ -1,5 +1,45 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：插件管理静谧 Material 3 主从布局
+
+### 基线与证据
+
+- 设计来源：`design-qa-artifacts/plugin-manager-quiet-source.png`，1487×1058；
+- 正式实现：`/plugins`，截图为 `design-qa-artifacts/plugin-manager-quiet-formal-final.png`；
+- 完整同画布对照：`design-qa-artifacts/plugin-manager-quiet-formal-comparison.png`；
+- 页面内容局部对照：`design-qa-artifacts/plugin-manager-quiet-formal-comparison-content.png`；
+- 响应式证据：`design-qa-artifacts/plugin-manager-quiet-formal-1024.png` 与 `design-qa-artifacts/plugin-manager-quiet-formal-680.png`；
+- 状态：浅色主题、音频设备切换选中；插件启停来自本机真实应用状态，交互测试后已恢复原状态。
+
+### 视觉与结构结论
+
+- 页面改为开放式主从工作区，移除旧版详情外卡片、指标卡片和多层边框，保留左侧搜索/筛选/插件列表与右侧身份、标签和详情内容；
+- 1487×1058 下使用 80 px 顶栏、116 px 导航、438 px 插件列表和 933 px 详情区；页签基线、操作按钮、概览指标、权限与存储分割线均与确认稿同画布核对；
+- 五个插件图标容器的计算背景色均为 `rgb(103, 80, 164)`，落实“统一紫色系”要求；绿色仅用于启用状态，红色仅用于危险操作；
+- 列表保留音频、HDR、行情、番茄钟和便签各自的正式 Material 图标；详情主图标统一使用插件轮廓。所有图标来自 `@mdui/icons`，没有字符图标、自制 SVG、CSS 图形或占位图；
+- 正式版继续显示清单中的真实分类、版本、描述、贡献数量与权限，因此分类文字和实际启停状态可能与生成式视觉稿的演示值不同；这是数据真实性要求，不属于视觉错位；
+- 启动器现有品牌区、窗口控制和导航路由保持原实现，未改动插件自身页面或 Widget 外观。
+
+### 交互、响应式与无障碍
+
+- 已实际验证名称/描述搜索、全部/已启用/已停用筛选、插件选择、六个详情标签、列表与详情双开关、禁用和重新加载；市场行情启停测试结束后已恢复启用；
+- 已停用插件的重新加载按钮会禁用，避免运行时被重新启用但持久化状态仍显示停用；
+- 1024×768 下保留双栏并让概览纵向滚动；680×900 下隐藏列表、保留完整详情。两档页面均满足 `scrollWidth === clientWidth`，无横向溢出；
+- 搜索、筛选菜单、列表、页签、开关和操作按钮均使用原生语义控件，具备可访问名称、当前项、选中态、禁用态和焦点轮廓；
+- 1487×1058 下页面、详情与内容区的 `scrollWidth/clientWidth` 和 `scrollHeight/clientHeight` 完全一致；浏览器控制台 error 为 0。
+
+### 校验结果
+
+- 插件注册表生成与 5 个插件清单校验通过；
+- TypeScript、ESLint、Stylelint 全部通过；
+- 22 个前端测试文件、87 项测试通过，其中插件管理页新增 2 项搜索/筛选/选择/启停/重载/页签回归；
+- Rust fmt、Clippy 和 22 项 Rust 测试通过；
+- 未解决 P0/P1/P2：无。确认稿的生成式字体抗锯齿、演示状态与正式系统字体/真实状态存在轻微差异，记录为 P3。
+
+final result: passed
+
+---
+
 ## 当前验收：暖纸便签正式重构
 
 ### 基线与证据
