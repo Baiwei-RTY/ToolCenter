@@ -73,6 +73,18 @@ pub async fn widget_instance_update(
 }
 
 #[tauri::command]
+pub async fn widget_instances_reorder(
+    app: AppHandle,
+    state: State<'_, CoreState>,
+    host_state: State<'_, WidgetHostState>,
+    instance_ids: Vec<String>,
+) -> Result<Vec<WidgetInstance>, AppError> {
+    let instances = widgets::reorder(&state, &instance_ids)?;
+    sync_hosts(&app, &state, &host_state)?;
+    Ok(instances)
+}
+
+#[tauri::command]
 pub async fn widget_instance_remove(
     app: AppHandle,
     state: State<'_, CoreState>,

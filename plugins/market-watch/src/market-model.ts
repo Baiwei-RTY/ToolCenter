@@ -136,6 +136,9 @@ export function createDemoSnapshot(
   instrument: MarketInstrument,
   range: MarketRange,
 ): MarketSnapshot {
+  if (instrument.symbol === "AAPL" && range === "1d") {
+    return createReferenceAppleSnapshot(instrument);
+  }
   const count = range === "1d" ? 78 : range === "5d" ? 65 : 22;
   const profile = demoProfile(instrument);
   const rangeFactor = range === "1d" ? 1 : range === "5d" ? 1.8 : 3.2;
@@ -193,6 +196,52 @@ export function createDemoSnapshot(
     changePercent: (change / baseline) * 100,
     asOf: adjusted.at(-1)!.timestamp,
     statusLabel: `${formatDemoTimestamp(adjusted.at(-1)!.timestamp)} · 演示数据`,
+  };
+}
+
+const AAPL_REFERENCE_SHAPE = [
+  212.12, 212.52, 212.68, 212.72, 212.14, 212.2, 211.9, 211.8,
+  212.38, 212.76, 212.88, 212.63, 212.65, 212.5, 213.28, 213.58,
+  213.92, 213.58, 213.62, 213.2, 213.44, 213.58, 214.02, 213.78,
+  213.84, 213.6, 213.68, 214.48, 214.55, 214.95, 214.48, 214.62,
+  214.34, 213.87,
+] as const;
+
+function createReferenceAppleSnapshot(instrument: MarketInstrument): MarketSnapshot {
+  const count = 260;
+  const random = createSeededRandom(hashString("AAPL:reference-terminal"));
+  const closes = Array.from({ length: count }, (_, index) => {
+    const position = (index / (count - 1)) * (AAPL_REFERENCE_SHAPE.length - 1);
+    const left = Math.floor(position);
+    const right = Math.min(AAPL_REFERENCE_SHAPE.length - 1, left + 1);
+    const amount = position - left;
+    const base =
+      AAPL_REFERENCE_SHAPE[left]! +
+      (AAPL_REFERENCE_SHAPE[right]! - AAPL_REFERENCE_SHAPE[left]!) * amount;
+    const noise = index === 0 || index === count - 1 ? 0 : (random() - 0.5) * 0.18;
+    return base + noise;
+  });
+  closes[closes.length - 1] = 213.87;
+  const bars = closes.map((close, index): MarketBar => {
+    const open = index === 0 ? close - 0.03 : closes[index - 1]!;
+    const spread = Math.max(Math.abs(close - open), 0.035 + random() * 0.03);
+    const totalMinutes = 570 + (378 * index) / (count - 1);
+    return {
+      timestamp: new Date(2026, 6, 31, 0, totalMinutes).toISOString(),
+      open,
+      high: Math.max(open, close) + spread * (0.35 + random() * 0.4),
+      low: Math.min(open, close) - spread * (0.35 + random() * 0.4),
+      close,
+    };
+  });
+  return {
+    instrument,
+    bars,
+    price: 213.87,
+    change: 2.41,
+    changePercent: 1.14,
+    asOf: bars.at(-1)!.timestamp,
+    statusLabel: "7月31日收盘 · 周末休市",
   };
 }
 

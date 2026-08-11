@@ -43,6 +43,7 @@ pub fn run() {
             commands::widgets::widget_monitors_list,
             commands::widgets::widget_instance_create,
             commands::widgets::widget_instance_update,
+            commands::widgets::widget_instances_reorder,
             commands::widgets::widget_instance_remove,
             commands::widgets::widget_instance_reset_position,
             commands::widgets::widget_hosts_sync,

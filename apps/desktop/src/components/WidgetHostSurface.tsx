@@ -407,7 +407,9 @@ function WidgetMount({
       className="widget-host__instance"
       data-toolcenter-widget-region
       data-instance-id={instance.instanceId}
+      data-plugin-id={instance.pluginId}
       data-resizing={resizePreview ? "" : undefined}
+      data-widget-size={responsiveSize}
       style={style}
     >
       <div
@@ -446,6 +448,18 @@ function WidgetMount({
           <Icon name="close" />
         </button>
       </div>
+      {instance.pluginId === "toolcenter.sticky-notes" ? (
+        <div
+          aria-hidden="true"
+          className="widget-host__top-drag-zone"
+          data-locked={instance.locked ? "true" : undefined}
+          title="按住顶部边缘拖动小组件"
+          onPointerDown={beginDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={(event) => void finishDrag(event)}
+          onPointerCancel={(event) => void finishDrag(event)}
+        />
+      ) : null}
       <div className="widget-host__content">
         {loadError ? (
           <div className="widget-host__error" role="alert">

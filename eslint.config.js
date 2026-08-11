@@ -6,7 +6,16 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "**/target/**", "**/*.generated.ts"],
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/target/**",
+      "**/*.generated.ts",
+      "design-prototypes/**",
+      "design-previews/**",
+      "design-qa-artifacts/**",
+      "视觉稿件/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -29,4 +38,3 @@ export default tseslint.config(
     },
   },
 );
-
