@@ -40,6 +40,42 @@ final result: passed
 
 ---
 
+# 番茄钟插件 Material 3 正式源码视觉验收
+
+## 对照对象
+
+- 选定视觉稿：`design-previews/pomodoro-timer-material3/design-qa-artifacts/reference-selected-concept-1.png`；
+- 正式源码截图：`design-qa-artifacts/pomodoro-timer-formal-wide.png`；
+- 同画布对照：`design-qa-artifacts/pomodoro-timer-formal-comparison.png`；
+- 视口：Wide 520×220，同时复核 Medium 360×220 与 Small 260×160；
+- 默认状态：专注 25 分钟、休息 5 分钟、已完成 0 轮；完成轮数使用真实实例数据，不复用视觉稿中的演示数值。
+
+## 对照结论
+
+- 信息结构与选定稿一致：左侧环形计时、右侧阶段选择、状态、分隔线、完成轮数以及主操作区；
+- 按用户确认删除了时间上方的装饰紫色圆点，图标、环形进度和主要操作统一为 Material 3 紫色系；
+- 正式 Widget Host 外层边框与底色已移除，宿主控制仅在悬停或键盘聚焦时浮现；插件本体保留圆角容器；
+- Small、Medium、Wide 三档均无横向或纵向溢出，Small 核心按钮点击区域不小于 36×36 px；设置弹窗在 Small 下也无裁切；
+- 浏览器控制台无插件错误；开发环境仅出现 MDUI 自身的 Lit 开发模式提示，生产构建不包含该开发提示。
+
+## 功能与桌面壳复核
+
+- 浏览器真实 Widget Host 已完成设置、开始、倒计时推进、暂停、继续与重置回归；
+- 原生 Tauri 调试壳已完成实例创建、显示、开始、倒计时推进、暂停、重置、设置弹窗和取消回归；
+- 专注结束自动进入休息、完成轮数只增加一次、专注/休息差异化提示音以及跨休眠恢复由 11 项模型测试覆盖；
+- 联调完成后保留了一个隐藏的番茄钟测试实例，未删除用户数据；经用户确认后已执行正式发布构建并覆盖唯一 `正式版/`，正式程序启动正常且插件详情显示“运行环境就绪”。
+
+## 自动验证
+
+- 插件校验：5/5 通过；
+- 前端：22 个测试文件、90/90 测试通过，TypeScript、ESLint、Stylelint 通过；
+- Rust：`fmt`、`clippy -D warnings`、22/22 测试通过；
+- Web 生产构建通过；番茄钟保持独立懒加载，JS 19.67 kB（gzip 6.78 kB），CSS 14.54 kB（gzip 2.88 kB）。
+
+final result: passed
+
+---
+
 ## 当前验收：暖纸便签正式重构
 
 ### 基线与证据

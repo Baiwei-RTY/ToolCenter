@@ -1,26 +1,114 @@
 import type { WidgetProps } from "@tool-center/plugin-contract";
-import { type FormEvent, useId, useState } from "react";
+import {
+  buildStyles,
+  CircularProgressbar,
+  CircularProgressbarWithChildren,
+} from "react-circular-progressbar";
+import {
+  createElement,
+  type FormEvent,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+
+import "@mdui/icons/adjust.js";
+import "@mdui/icons/check-circle-outline.js";
+import "@mdui/icons/close.js";
+import "@mdui/icons/coffee.js";
+import "@mdui/icons/fiber-manual-record.js";
+import "@mdui/icons/pause.js";
+import "@mdui/icons/play-arrow.js";
+import "@mdui/icons/restart-alt.js";
+import "@mdui/icons/tune.js";
 
 import {
+  completionSoundForTransition,
   elapsedRatio,
   formatTimerClock,
   isValidDurationMinutes,
   MAX_DURATION_MINUTES,
   MIN_DURATION_MINUTES,
   remainingMilliseconds,
+  type PomodoroDocument,
   type PomodoroPhase,
   type PomodoroStatus,
 } from "./pomodoro-model";
+import {
+  createPomodoroSoundController,
+  type PomodoroSoundController,
+} from "./pomodoro-sound";
 import "./styles.css";
 import { usePomodoro } from "./use-pomodoro";
 
+type IconName =
+  | "break"
+  | "check"
+  | "close"
+  | "focus"
+  | "pause"
+  | "play"
+  | "reset"
+  | "status"
+  | "tune";
+
+const ICON_TAGS: Record<IconName, string> = {
+  break: "mdui-icon-coffee",
+  check: "mdui-icon-check-circle-outline",
+  close: "mdui-icon-close",
+  focus: "mdui-icon-adjust",
+  pause: "mdui-icon-pause",
+  play: "mdui-icon-play-arrow",
+  reset: "mdui-icon-restart-alt",
+  status: "mdui-icon-fiber-manual-record",
+  tune: "mdui-icon-tune",
+};
+
+function Icon({ name, className }: { readonly name: IconName; readonly className?: string }) {
+  return createElement(ICON_TAGS[name], {
+    class: className,
+    "aria-hidden": "true",
+  });
+}
+
 export default function PomodoroWidget({ context, widget }: WidgetProps) {
   const timer = usePomodoro(context, widget.instanceId, widget.visible);
+  const soundControllerRef = useRef<PomodoroSoundController | null>(null);
+  const previousDocumentRef = useRef<PomodoroDocument | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [focusDraft, setFocusDraft] = useState("25");
   const [breakDraft, setBreakDraft] = useState("5");
   const [settingsError, setSettingsError] = useState<string>();
+  const settingsTitleId = useId();
   const settingsHintId = useId();
+
+  if (soundControllerRef.current === null) {
+    soundControllerRef.current = createPomodoroSoundController();
+  }
+
+  useEffect(
+    () => () => {
+      soundControllerRef.current?.dispose();
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const previous = previousDocumentRef.current;
+    previousDocumentRef.current = timer.document;
+    if (!previous || timer.loadStatus !== "ready") {
+      return;
+    }
+
+    const completedPhase = completionSoundForTransition(
+      previous,
+      timer.document,
+    );
+    if (completedPhase) {
+      soundControllerRef.current?.play(completedPhase);
+    }
+  }, [timer.document, timer.loadStatus]);
 
   if (!widget.visible) {
     return <section className="plugin-pomodoro-timer" aria-hidden="true" />;
@@ -55,14 +143,7 @@ export default function PomodoroWidget({ context, widget }: WidgetProps) {
   const remainingMs = remainingMilliseconds(document, timer.nowMs);
   const phaseLabel = document.phase === "focus" ? "专注" : "休息";
   const statusMessage = timerStatusMessage(document.phase, document.status);
-  const saveMessage =
-    timer.saveStatus === "saving"
-      ? "保存中…"
-      : timer.saveStatus === "error"
-        ? "保存失败"
-        : widget.locked
-          ? "位置已锁定"
-          : `已完成 ${document.completedFocusSessions} 轮`;
+  const progress = elapsedRatio(document, timer.nowMs) * 100;
 
   const openSettings = () => {
     setFocusDraft(String(document.settings.focusMinutes));
@@ -94,6 +175,15 @@ export default function PomodoroWidget({ context, widget }: WidgetProps) {
     setSettingsOpen(false);
   };
 
+  const handlePrimaryAction = () => {
+    if (running) {
+      timer.pause();
+      return;
+    }
+    soundControllerRef.current?.unlock();
+    timer.start();
+  };
+
   return (
     <section
       className={`plugin-pomodoro-timer plugin-pomodoro-timer--${widget.size}`}
@@ -101,135 +191,197 @@ export default function PomodoroWidget({ context, widget }: WidgetProps) {
       data-status={document.status}
       aria-label="番茄钟桌面小组件"
     >
-      {settingsOpen ? (
-        <form
-          className="plugin-pomodoro-timer__settings"
-          onSubmit={submitSettings}
+      <div className="plugin-pomodoro-timer__dial-pane">
+        <div
+          className="plugin-pomodoro-timer__dial-shell"
+          aria-label={`${phaseLabel}计时进度`}
         >
-          <div className="plugin-pomodoro-timer__settings-fields">
-            <label>
-              <span>专注分钟</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={MIN_DURATION_MINUTES}
-                max={MAX_DURATION_MINUTES}
-                step={1}
-                value={focusDraft}
-                aria-describedby={settingsHintId}
-                onChange={(event) => setFocusDraft(event.target.value)}
-              />
-            </label>
-            <label>
-              <span>休息分钟</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={MIN_DURATION_MINUTES}
-                max={MAX_DURATION_MINUTES}
-                step={1}
-                value={breakDraft}
-                aria-describedby={settingsHintId}
-                onChange={(event) => setBreakDraft(event.target.value)}
-              />
-            </label>
-          </div>
-          <p id={settingsHintId} className="plugin-pomodoro-timer__settings-hint">
-            保存后重置当前阶段，不会自动开始。
-          </p>
-          {settingsError ? (
-            <p className="plugin-pomodoro-timer__settings-error" role="alert">
-              {settingsError}
+          <CircularProgressbarWithChildren
+            value={progress}
+            strokeWidth={2.8}
+            styles={buildStyles({
+              rotation: 0,
+              pathColor: "var(--pomodoro-primary)",
+              trailColor: "var(--pomodoro-track)",
+              pathTransitionDuration: 0.35,
+            })}
+          >
+            <strong className="plugin-pomodoro-timer__time" role="timer">
+              {formatTimerClock(remainingMs)}
+            </strong>
+          </CircularProgressbarWithChildren>
+          <CircularProgressbar
+            className="plugin-pomodoro-timer__dial-ticks"
+            value={100}
+            strokeWidth={1.4}
+            styles={buildStyles({
+              pathColor: "var(--pomodoro-tick)",
+              trailColor: "transparent",
+              strokeLinecap: "butt",
+            })}
+          />
+        </div>
+      </div>
+
+      <div className="plugin-pomodoro-timer__control-pane">
+        <div
+          className="plugin-pomodoro-timer__phases"
+          role="group"
+          aria-label="选择计时阶段"
+        >
+          <PhaseButton
+            phase="focus"
+            current={document.phase}
+            minutes={document.settings.focusMinutes}
+            disabled={running}
+            onSelect={timer.setPhase}
+          />
+          <PhaseButton
+            phase="break"
+            current={document.phase}
+            minutes={document.settings.breakMinutes}
+            disabled={running}
+            onSelect={timer.setPhase}
+          />
+        </div>
+
+        <div className="plugin-pomodoro-timer__status" aria-live="polite">
+          <Icon name="status" className="plugin-pomodoro-timer__status-icon" />
+          <span>{statusMessage}</span>
+        </div>
+
+        <div className="plugin-pomodoro-timer__divider" aria-hidden="true" />
+
+        <div className="plugin-pomodoro-timer__completion">
+          <Icon name="check" className="plugin-pomodoro-timer__completion-icon" />
+          <span>已完成 {document.completedFocusSessions} 轮</span>
+        </div>
+
+        <div className="plugin-pomodoro-timer__controls">
+          <button
+            className="plugin-pomodoro-timer__primary"
+            type="button"
+            onClick={handlePrimaryAction}
+          >
+            <Icon
+              name={running ? "pause" : "play"}
+              className="plugin-pomodoro-timer__primary-icon"
+            />
+            <span>{primaryActionLabel(document.phase, document.status)}</span>
+          </button>
+          <button
+            className="plugin-pomodoro-timer__icon-action"
+            type="button"
+            aria-label="重置计时"
+            title="重置计时"
+            onClick={timer.reset}
+          >
+            <Icon name="reset" />
+          </button>
+          <button
+            className="plugin-pomodoro-timer__icon-action"
+            type="button"
+            aria-label="调整时长"
+            title={running ? "请先暂停计时" : "调整专注和休息时长"}
+            disabled={running}
+            onClick={openSettings}
+          >
+            <Icon name="tune" />
+          </button>
+        </div>
+      </div>
+
+      <span className="plugin-pomodoro-timer__announcement" aria-live="polite">
+        {statusMessage}
+      </span>
+
+      {timer.errorMessage ? (
+        <div className="plugin-pomodoro-timer__feedback" role="alert">
+          <span>{timer.errorMessage}</span>
+          {timer.saveStatus === "error" ? (
+            <button type="button" onClick={timer.retrySave}>
+              重试
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {settingsOpen ? (
+        <div
+          className="plugin-pomodoro-timer__settings-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeSettings();
+            }
+          }}
+        >
+          <form
+            className="plugin-pomodoro-timer__settings"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={settingsTitleId}
+            onSubmit={submitSettings}
+          >
+            <header>
+              <div>
+                <h2 id={settingsTitleId}>调整时长</h2>
+                <p>保存后重置当前阶段，不会自动开始。</p>
+              </div>
+              <button
+                className="plugin-pomodoro-timer__dialog-close"
+                type="button"
+                aria-label="关闭"
+                onClick={closeSettings}
+              >
+                <Icon name="close" />
+              </button>
+            </header>
+            <div className="plugin-pomodoro-timer__settings-fields">
+              <label>
+                <span>专注分钟</span>
+                <input
+                  autoFocus
+                  type="number"
+                  inputMode="numeric"
+                  min={MIN_DURATION_MINUTES}
+                  max={MAX_DURATION_MINUTES}
+                  step={1}
+                  value={focusDraft}
+                  aria-describedby={settingsHintId}
+                  onChange={(event) => setFocusDraft(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>休息分钟</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={MIN_DURATION_MINUTES}
+                  max={MAX_DURATION_MINUTES}
+                  step={1}
+                  value={breakDraft}
+                  aria-describedby={settingsHintId}
+                  onChange={(event) => setBreakDraft(event.target.value)}
+                />
+              </label>
+            </div>
+            <p id={settingsHintId} className="plugin-pomodoro-timer__settings-message">
+              {settingsError ?? "专注完成后会自动开始休息。"}
             </p>
-          ) : null}
-          <div className="plugin-pomodoro-timer__settings-actions">
-            <button
-              className="plugin-pomodoro-timer__primary"
-              type="submit"
-            >
-              保存时长
-            </button>
-            <button type="button" onClick={closeSettings}>
-              取消
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          <div
-            className="plugin-pomodoro-timer__phases"
-            role="group"
-            aria-label="选择计时阶段"
-          >
-            <PhaseButton
-              phase="focus"
-              current={document.phase}
-              minutes={document.settings.focusMinutes}
-              disabled={running}
-              onSelect={timer.setPhase}
-            />
-            <PhaseButton
-              phase="break"
-              current={document.phase}
-              minutes={document.settings.breakMinutes}
-              disabled={running}
-              onSelect={timer.setPhase}
-            />
-          </div>
-
-          <div className="plugin-pomodoro-timer__display">
-            <strong role="timer">{formatTimerClock(remainingMs)}</strong>
-            <div className="plugin-pomodoro-timer__meta">
-              <span>{statusMessage}</span>
-              <span>{saveMessage}</span>
+            <div className="plugin-pomodoro-timer__settings-actions">
+              <button type="button" onClick={closeSettings}>
+                取消
+              </button>
+              <button
+                className="plugin-pomodoro-timer__dialog-save"
+                type="submit"
+              >
+                保存时长
+              </button>
             </div>
-            <progress
-              max={1}
-              value={elapsedRatio(document, timer.nowMs)}
-              aria-label={`${phaseLabel}计时进度`}
-            />
-          </div>
-
-          <div className="plugin-pomodoro-timer__controls">
-            <button
-              className="plugin-pomodoro-timer__primary"
-              type="button"
-              onClick={running ? timer.pause : timer.start}
-            >
-              {primaryActionLabel(document.phase, document.status)}
-            </button>
-            <button type="button" onClick={timer.reset}>
-              重置
-            </button>
-            <button
-              type="button"
-              disabled={running}
-              title={running ? "请先暂停计时" : "调整专注和休息时长"}
-              onClick={openSettings}
-            >
-              时长
-            </button>
-          </div>
-
-          <span
-            className="plugin-pomodoro-timer__announcement"
-            aria-live="polite"
-          >
-            {document.status === "completed" ? statusMessage : ""}
-          </span>
-
-          {timer.errorMessage ? (
-            <div className="plugin-pomodoro-timer__feedback" role="alert">
-              <span>{timer.errorMessage}</span>
-              {timer.saveStatus === "error" ? (
-                <button type="button" onClick={timer.retrySave}>
-                  重试
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </>
-      )}
+          </form>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -248,15 +400,21 @@ function PhaseButton({
   readonly onSelect: (phase: PomodoroPhase) => void;
 }) {
   const selected = phase === current;
+  const label = phase === "focus" ? "专注" : "休息";
   return (
     <button
+      className="plugin-pomodoro-timer__phase-button"
       type="button"
+      aria-label={`${label} ${minutes} 分钟`}
       aria-pressed={selected}
       disabled={disabled}
       onClick={() => onSelect(phase)}
     >
-      <span>{phase === "focus" ? "专注" : "休息"}</span>
-      <small>{minutes} 分钟</small>
+      <Icon name={phase} className="plugin-pomodoro-timer__phase-icon" />
+      <span className="plugin-pomodoro-timer__phase-copy">
+        <strong>{label}</strong>
+        <small>{minutes} 分钟</small>
+      </span>
     </button>
   );
 }

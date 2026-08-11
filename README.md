@@ -113,6 +113,6 @@ cmd /c cargo --version
 
 ## 开源许可
 
-ToolCenter 源代码采用 [MIT License](LICENSE) 开放。启动器界面使用 MDUI 2 与 `@mdui/icons`，按 MIT License 使用，详情见 [MDUI 第三方许可说明](THIRD_PARTY_NOTICES/MDUI/NOTICE.md)。音频设备切换、HDR 开关和市场行情插件使用的部分 SVG 图标来自 Google Material Symbols；市场行情图表使用 Apache ECharts。二者均按 Apache License 2.0 使用，详情见 [Material Symbols 第三方许可说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)与 [Apache ECharts 第三方许可说明](THIRD_PARTY_NOTICES/ECharts/NOTICE.md)。
+ToolCenter 源代码采用 [MIT License](LICENSE) 开放。启动器界面使用 MDUI 2 与 `@mdui/icons`，按 MIT License 使用，详情见 [MDUI 第三方许可说明](THIRD_PARTY_NOTICES/MDUI/NOTICE.md)。音频设备切换、HDR 开关和市场行情插件使用的部分 SVG 图标来自 Google Material Symbols；市场行情图表使用 Apache ECharts。二者均按 Apache License 2.0 使用，详情见 [Material Symbols 第三方许可说明](THIRD_PARTY_NOTICES/Material-Symbols/NOTICE.md)与 [Apache ECharts 第三方许可说明](THIRD_PARTY_NOTICES/ECharts/NOTICE.md)。番茄钟使用 `react-circular-progressbar` 绘制环形进度，按 MIT License 使用，详情见 [React Circular Progressbar 第三方许可说明](THIRD_PARTY_NOTICES/React-Circular-Progressbar/NOTICE.md)。
 
 本地设计交接包、原始参考截图、构建产物和便携式 EXE 不进入源码仓库。可执行文件应通过 GitHub Releases 独立发布。

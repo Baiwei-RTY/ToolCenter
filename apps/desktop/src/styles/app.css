@@ -2850,6 +2850,40 @@ html[data-surface="widget-host"] #root {
   border-radius: inherit;
 }
 
+.widget-host__instance[data-plugin-id="toolcenter.pomodoro-timer"] {
+  display: block;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.pomodoro-timer"] > .widget-host__controls {
+  position: absolute;
+  z-index: 6;
+  top: 6px;
+  left: 6px;
+  width: 96px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-outline), transparent 34%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-1), transparent 10%);
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.pomodoro-timer"]:focus-within > .widget-host__controls,
+.widget-host__instance[data-plugin-id="toolcenter.pomodoro-timer"]:hover > .widget-host__controls {
+  pointer-events: auto;
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.pomodoro-timer"] > .widget-host__content {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
 .widget-host__instance[data-plugin-id="toolcenter.sticky-notes"] {
   display: block;
   border: 0;

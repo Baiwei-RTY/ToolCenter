@@ -234,11 +234,60 @@ export function advancePomodoro(
   ) {
     return document;
   }
-  return completedDocument(
-    document.settings,
-    document.phase,
-    document.completedFocusSessions + (document.phase === "focus" ? 1 : 0),
-  );
+
+  if (document.phase === "break") {
+    return completedDocument(
+      document.settings,
+      "break",
+      document.completedFocusSessions,
+    );
+  }
+
+  const completedFocusSessions = document.completedFocusSessions + 1;
+  const breakEndAt =
+    document.endAt + durationMilliseconds(document.settings, "break");
+  if (breakEndAt <= now) {
+    return completedDocument(
+      document.settings,
+      "break",
+      completedFocusSessions,
+    );
+  }
+
+  return {
+    schemaVersion: POMODORO_SCHEMA_VERSION,
+    settings: document.settings,
+    phase: "break",
+    status: "running",
+    remainingMs: breakEndAt - now,
+    endAt: breakEndAt,
+    completedFocusSessions,
+  };
+}
+
+export function completionSoundForTransition(
+  previous: PomodoroDocument,
+  next: PomodoroDocument,
+): PomodoroPhase | null {
+  if (previous.status !== "running") {
+    return null;
+  }
+  if (
+    next.phase === "break" &&
+    next.status === "running" &&
+    next.completedFocusSessions > previous.completedFocusSessions
+  ) {
+    return "focus";
+  }
+  if (
+    next.phase === "break" &&
+    next.status === "completed" &&
+    (previous.phase === "break" ||
+      next.completedFocusSessions > previous.completedFocusSessions)
+  ) {
+    return "break";
+  }
+  return null;
 }
 
 export function remainingMilliseconds(

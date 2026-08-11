@@ -34,6 +34,10 @@
 - 已建立固定 `正式版/ToolCenter.exe` 输出，以及插件直接进入真实 ToolCenter 桌面壳的开发命令。
 - 本轮便签重构在 `codex/sticky-notes-warm-paper` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
 - 真实开发版 `target/debug/toolcenter-desktop.exe` 已成功启动；Windows 窗口捕获辅助器当前无法取得窗口状态，因此便签数据的真实重启恢复仍保留为人工桌面复验项。
+- 内置 `toolcenter.pomodoro-timer` Widget 已按确认的 Material 3 紫色方案完成正式源码重构，删除时间上方装饰圆点，支持三档尺寸、设置时长、开始/暂停/继续/重置、按实例持久化与共享 Scheduler；
+- 专注结束会播放升调提示音、完成轮数增加一次并自动开始休息；休息结束会播放降调提示音并停下等待下一轮专注；跨休眠或重启后按绝对结束时间恢复；
+- 番茄钟已完成浏览器三档视觉复核与真实 Tauri 桌面壳交互回归；全量验证通过 90 项前端测试和 22 项 Rust 测试，Web 生产构建通过；
+- 本轮番茄钟重构在 `codex/pomodoro-material3-formal` 分支开发；2026-08-11 经用户确认后已通过 `release-build` 覆盖唯一 `正式版/`。正式程序启动正常，番茄钟插件显示“运行环境就绪”，当前保留一个隐藏实例；交付 EXE SHA-256 为 `5e06ed97ea398033f8f116ef0a41c4dfddbaa9686e470652f084c96d9831b5e0`。
 
 ## 等待后续设计输入
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   advancePomodoro,
+  completionSoundForTransition,
   createDefaultPomodoroDocument,
   DEFAULT_BREAK_MINUTES,
   DEFAULT_FOCUS_MINUTES,
@@ -42,23 +43,46 @@ describe("pomodoro model", () => {
     expect(resumed.endAt).toBe(1_560_000);
   });
 
-  it("completes focus once and starts the configured break next", () => {
+  it("automatically starts the configured break when focus completes", () => {
     const configured = updatePomodoroDurations(
       createDefaultPomodoroDocument(),
       1,
       7,
     );
     const started = startPomodoro(configured, 0);
-    const completed = advancePomodoro(started, 60_000);
-    const breakStarted = startPomodoro(completed, 65_000);
+    const breakStarted = advancePomodoro(started, 60_000);
 
-    expect(completed.status).toBe("completed");
-    expect(completed.completedFocusSessions).toBe(1);
+    expect(breakStarted.status).toBe("running");
     expect(breakStarted.phase).toBe("break");
     expect(formatTimerClock(breakStarted.remainingMs)).toBe("07:00");
+    expect(breakStarted.endAt).toBe(480_000);
+    expect(breakStarted.completedFocusSessions).toBe(1);
+    expect(completionSoundForTransition(started, breakStarted)).toBe("focus");
   });
 
-  it("recovers an elapsed running session after sleep or restart", () => {
+  it("completes the automatic break and waits for the next focus session", () => {
+    const configured = updatePomodoroDurations(
+      createDefaultPomodoroDocument(),
+      1,
+      1,
+    );
+    const focusStarted = startPomodoro(configured, 0);
+    const breakStarted = advancePomodoro(focusStarted, 60_000);
+    const breakCompleted = advancePomodoro(breakStarted, 120_000);
+
+    expect(breakCompleted.phase).toBe("break");
+    expect(breakCompleted.status).toBe("completed");
+    expect(breakCompleted.completedFocusSessions).toBe(1);
+    expect(completionSoundForTransition(breakStarted, breakCompleted)).toBe(
+      "break",
+    );
+
+    const nextFocus = startPomodoro(breakCompleted, 130_000);
+    expect(nextFocus.phase).toBe("focus");
+    expect(nextFocus.status).toBe("running");
+  });
+
+  it("recovers into the automatic break after sleep or restart", () => {
     const recovered = normalizePomodoroDocument(
       {
         ...createDefaultPomodoroDocument(),
@@ -69,6 +93,24 @@ describe("pomodoro model", () => {
       20_000,
     );
 
+    expect(recovered.phase).toBe("break");
+    expect(recovered.status).toBe("running");
+    expect(recovered.endAt).toBe(310_000);
+    expect(recovered.completedFocusSessions).toBe(1);
+  });
+
+  it("recovers as break completed when both phases elapsed while inactive", () => {
+    const recovered = normalizePomodoroDocument(
+      {
+        ...createDefaultPomodoroDocument(),
+        status: "running",
+        remainingMs: 60_000,
+        endAt: 10_000,
+      },
+      400_000,
+    );
+
+    expect(recovered.phase).toBe("break");
     expect(recovered.status).toBe("completed");
     expect(recovered.completedFocusSessions).toBe(1);
   });
@@ -120,5 +162,16 @@ describe("pomodoro model", () => {
 
     expect(elapsedRatio(started, 750_000)).toBe(0.5);
     expect(pomodoroStorageKey("w123abc")).toBe("widget.w123abc.v1");
+  });
+
+  it("does not emit completion sounds for ordinary controls", () => {
+    const idle = createDefaultPomodoroDocument();
+    const running = startPomodoro(idle, 0);
+    const paused = pausePomodoro(running, 1_000);
+    const reset = resetPomodoro(paused);
+
+    expect(completionSoundForTransition(idle, running)).toBeNull();
+    expect(completionSoundForTransition(running, paused)).toBeNull();
+    expect(completionSoundForTransition(paused, reset)).toBeNull();
   });
 });
