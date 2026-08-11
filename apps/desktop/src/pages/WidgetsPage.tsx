@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router";
 import type {
   PermissionDecision,
   PluginDefinition,
@@ -42,15 +41,13 @@ interface DragTarget {
 }
 
 export function WidgetsPage() {
-  const navigate = useNavigate();
   const enabledPluginIds = useAppStore((state) => state.enabledPluginIds);
   const [instances, setInstances] = useState<readonly WidgetInstance[]>([]);
   const [monitors, setMonitors] = useState<readonly WidgetMonitor[]>([]);
   const [query, setQuery] = useState("");
   const [selectedCatalogId, setSelectedCatalogId] = useState("");
-  const [selectedInstanceId, setSelectedInstanceId] = useState("");
-  const [settingsExpanded, setSettingsExpanded] = useState(true);
   const [openMenuId, setOpenMenuId] = useState<string>();
+  const [settingsInstanceId, setSettingsInstanceId] = useState<string>();
   const [busyInstanceId, setBusyInstanceId] = useState<string>();
   const [reordering, setReordering] = useState(false);
   const [draggingId, setDraggingId] = useState<string>();
@@ -90,9 +87,6 @@ export function WidgetsPage() {
         .includes(normalized),
     );
   }, [catalog, query]);
-  const selectedInstance =
-    instances.find((instance) => instance.instanceId === selectedInstanceId) ?? instances[0];
-
   const refresh = useCallback(async (): Promise<readonly WidgetInstance[]> => {
     const [nextInstances, nextMonitors] = await Promise.all([
       widgetService.list(),
@@ -131,10 +125,12 @@ export function WidgetsPage() {
         return;
       }
       setOpenMenuId(undefined);
+      setSettingsInstanceId(undefined);
     };
     const closeWithEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpenMenuId(undefined);
+        setSettingsInstanceId(undefined);
       }
     };
     document.addEventListener("pointerdown", closeMenu);
@@ -151,7 +147,7 @@ export function WidgetsPage() {
     }
     try {
       await requestDeclaredPermissions(catalogItem.plugin);
-      const created = await widgetService.create({
+      await widgetService.create({
         pluginId: catalogItem.plugin.id,
         widgetId: catalogItem.contribution.id,
         size: catalogItem.contribution.defaultSize,
@@ -162,8 +158,6 @@ export function WidgetsPage() {
         ),
       });
       await refresh();
-      setSelectedInstanceId(created.instanceId);
-      setSettingsExpanded(true);
       notify({
         title: "桌面小组件已添加",
         message: catalogItem.contribution.title,
@@ -192,6 +186,7 @@ export function WidgetsPage() {
 
   const removeInstance = async (instance: WidgetInstance) => {
     setOpenMenuId(undefined);
+    setSettingsInstanceId(undefined);
     const accepted = await requestConfirmation({
       title: "删除小组件实例？",
       message: "将从桌面移除此实例，插件本身及插件数据不会被删除。",
@@ -205,10 +200,7 @@ export function WidgetsPage() {
     setBusyInstanceId(instance.instanceId);
     try {
       await widgetService.remove(instance.instanceId);
-      const nextInstances = await refresh();
-      if (selectedInstanceId === instance.instanceId) {
-        setSelectedInstanceId(nextInstances[0]?.instanceId ?? "");
-      }
+      await refresh();
     } catch (error) {
       reportError(error);
     } finally {
@@ -233,25 +225,6 @@ export function WidgetsPage() {
     } finally {
       setBusyInstanceId(undefined);
     }
-  };
-
-  const openSettings = async (pluginId: string) => {
-    setOpenMenuId(undefined);
-    const plugin = pluginRegistry.find((candidate) => candidate.id === pluginId);
-    const page = plugin?.contributes.pages?.[0];
-    if (!page) {
-      notify({
-        title: "该插件没有设置页面",
-        message: "插件仍可通过小组件本身提供的控件完成操作。",
-        level: "info",
-        pluginId,
-      });
-      return;
-    }
-    await navigate({
-      to: "/plugin/$pluginId/$pageId",
-      params: { pluginId, pageId: page.id },
-    });
   };
 
   const persistOrder = async (nextInstances: readonly WidgetInstance[]) => {
@@ -386,18 +359,7 @@ export function WidgetsPage() {
                 type="button"
                 key={id}
                 aria-pressed={selected}
-                onClick={() => {
-                  setSelectedCatalogId(id);
-                  const existingInstance = instances.find(
-                    (instance) =>
-                      instance.pluginId === item.plugin.id &&
-                      instance.widgetId === item.contribution.id,
-                  );
-                  if (existingInstance) {
-                    setSelectedInstanceId(existingInstance.instanceId);
-                    setSettingsExpanded(true);
-                  }
-                }}
+                onClick={() => setSelectedCatalogId(id)}
               >
                 <span className="widget-entry-icon">
                   <Icon name={widgetIcon(item.plugin.id)} />
@@ -462,7 +424,9 @@ export function WidgetsPage() {
               const description = entry
                 ? widgetDescription(entry.plugin.id, entry.plugin.description)
                 : instance.pluginId;
-              const selected = instance.instanceId === selectedInstance?.instanceId;
+              const selected =
+                settingsInstanceId === instance.instanceId ||
+                openMenuId === instance.instanceId;
               const disabled = !enabledPluginIds.includes(instance.pluginId);
               const busy = busyInstanceId === instance.instanceId || reordering;
               const isTarget = dragTarget?.instanceId === instance.instanceId;
@@ -481,10 +445,6 @@ export function WidgetsPage() {
                   aria-label={`${title}实例`}
                   aria-describedby="widget-reorder-help"
                   data-widget-instance-id={instance.instanceId}
-                  onClick={() => {
-                    setSelectedInstanceId(instance.instanceId);
-                    setSettingsExpanded(true);
-                  }}
                   onKeyDown={(event) => {
                     const directRowAction = event.target === event.currentTarget;
                     const dragHandleAction =
@@ -505,10 +465,6 @@ export function WidgetsPage() {
                     ) {
                       event.preventDefault();
                       moveByKeyboard(instance.instanceId, 1);
-                    }
-                    if (directRowAction && (event.key === "Enter" || event.key === " ")) {
-                      event.preventDefault();
-                      setSelectedInstanceId(instance.instanceId);
                     }
                   }}
                 >
@@ -554,12 +510,21 @@ export function WidgetsPage() {
                       type="button"
                       disabled={busy}
                       aria-label={`${title}更多操作`}
-                      aria-expanded={openMenuId === instance.instanceId}
-                      onClick={() =>
+                      aria-expanded={
+                        openMenuId === instance.instanceId ||
+                        settingsInstanceId === instance.instanceId
+                      }
+                      onClick={() => {
+                        if (settingsInstanceId === instance.instanceId) {
+                          setSettingsInstanceId(undefined);
+                          setOpenMenuId(undefined);
+                          return;
+                        }
+                        setSettingsInstanceId(undefined);
                         setOpenMenuId((current) =>
                           current === instance.instanceId ? undefined : instance.instanceId,
-                        )
-                      }
+                        );
+                      }}
                     >
                       <Icon name="more" />
                     </button>
@@ -568,9 +533,12 @@ export function WidgetsPage() {
                         <button
                           type="button"
                           role="menuitem"
-                          onClick={() => void openSettings(instance.pluginId)}
+                          onClick={() => {
+                            setOpenMenuId(undefined);
+                            setSettingsInstanceId(instance.instanceId);
+                          }}
                         >
-                          <Icon name="settings" /> 打开插件设置
+                          <Icon name="settings" /> 实例设置
                         </button>
                         <button
                           type="button"
@@ -579,6 +547,7 @@ export function WidgetsPage() {
                         >
                           <Icon name="refresh" /> 重置位置
                         </button>
+                        <div className="widget-overflow-menu__divider" role="separator" />
                         <button
                           className="widget-overflow-menu__danger"
                           type="button"
@@ -588,6 +557,16 @@ export function WidgetsPage() {
                           <Icon name="delete" /> 删除实例
                         </button>
                       </div>
+                    ) : null}
+                    {settingsInstanceId === instance.instanceId ? (
+                      <WidgetInstanceSettingsPopover
+                        instance={instance}
+                        entry={entry}
+                        monitors={monitors}
+                        disabled={busy || disabled}
+                        onClose={() => setSettingsInstanceId(undefined)}
+                        onUpdate={updateInstance}
+                      />
                     ) : null}
                   </div>
                 </article>
@@ -601,41 +580,24 @@ export function WidgetsPage() {
             <p>从左侧选择已启用的小组件并添加实例。</p>
           </div>
         )}
-
-        {selectedInstance ? (
-          <WidgetSettingsPanel
-            instance={selectedInstance}
-            entry={findCatalogItem(catalog, selectedInstance)}
-            monitors={monitors}
-            disabled={
-              busyInstanceId === selectedInstance.instanceId ||
-              !enabledPluginIds.includes(selectedInstance.pluginId)
-            }
-            expanded={settingsExpanded}
-            onExpandedChange={setSettingsExpanded}
-            onUpdate={updateInstance}
-          />
-        ) : null}
       </div>
     </section>
   );
 }
 
-function WidgetSettingsPanel({
+function WidgetInstanceSettingsPopover({
   instance,
   entry,
   monitors,
   disabled,
-  expanded,
-  onExpandedChange,
+  onClose,
   onUpdate,
 }: {
   readonly instance: WidgetInstance;
   readonly entry?: WidgetCatalogItem;
   readonly monitors: readonly WidgetMonitor[];
   readonly disabled: boolean;
-  readonly expanded: boolean;
-  readonly onExpandedChange: (expanded: boolean) => void;
+  readonly onClose: () => void;
   readonly onUpdate: (
     instanceId: string,
     patch: Omit<Parameters<typeof widgetService.update>[0], "instanceId">,
@@ -644,25 +606,27 @@ function WidgetSettingsPanel({
   const supportedSizes = entry?.contribution.supportedSizes ?? [instance.size];
   const title = entry?.contribution.title ?? instance.widgetId;
   return (
-    <section className={`widget-settings-panel${expanded ? "" : " widget-settings-panel--collapsed"}`}>
-      <header className="widget-settings-panel__header">
+    <section
+      className="widget-settings-popover"
+      role="dialog"
+      aria-label={`${title}实例设置`}
+    >
+      <header className="widget-settings-popover__header">
         <div>
-          <h2>{title}</h2>
-          <p>实例设置</p>
+          <strong>实例设置</strong>
+          <span>{title}</span>
         </div>
         <button
-          className="widget-collapse-button"
+          className="widget-settings-popover__close"
           type="button"
-          aria-expanded={expanded}
-          onClick={() => onExpandedChange(!expanded)}
+          aria-label={`关闭${title}实例设置`}
+          onClick={onClose}
         >
-          {expanded ? "收起设置" : "展开设置"}
-          <Icon name={expanded ? "chevron-up" : "chevron-down"} />
+          <Icon name="close" />
         </button>
       </header>
 
-      {expanded ? (
-        <div className="widget-settings-list">
+      <div className="widget-settings-list">
           <label className="widget-settings-row">
             <span className="widget-settings-row__icon"><Icon name="size" /></span>
             <span className="widget-settings-row__copy">
@@ -735,25 +699,6 @@ function WidgetSettingsPanel({
           </label>
 
           <div className="widget-settings-row">
-            <span className="widget-settings-row__icon"><Icon name="visibility" /></span>
-            <span className="widget-settings-row__copy">
-              <strong>可见状态</strong>
-              <small>控制小组件是否显示在桌面</small>
-            </span>
-            <span className="widget-settings-row__switch">
-              <Switch
-                label="切换可见状态"
-                checked={instance.visible}
-                disabled={disabled}
-                onChange={(event) =>
-                  void onUpdate(instance.instanceId, { visible: event.target.checked })
-                }
-              />
-              <span>{instance.visible ? "显示中" : "已隐藏"}</span>
-            </span>
-          </div>
-
-          <div className="widget-settings-row">
             <span className="widget-settings-row__icon">
               <Icon name={instance.locked ? "lock" : "lock-open"} />
             </span>
@@ -773,8 +718,8 @@ function WidgetSettingsPanel({
               <span>{instance.locked ? "已锁定" : "未锁定"}</span>
             </span>
           </div>
-        </div>
-      ) : null}
+      </div>
+      <p className="widget-settings-popover__hint">更改会自动保存</p>
     </section>
   );
 }
