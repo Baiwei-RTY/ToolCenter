@@ -160,6 +160,27 @@ export const widgetService = {
     return hostBridge.invoke<WidgetInstance>("widget_instance_update", { input });
   },
 
+  async reorder(instanceIds: readonly string[]): Promise<readonly WidgetInstance[]> {
+    if (!isTauriHost()) {
+      const byId = new Map(
+        browserInstances.map((instance) => [instance.instanceId, instance] as const),
+      );
+      if (
+        instanceIds.length !== browserInstances.length ||
+        new Set(instanceIds).size !== browserInstances.length ||
+        instanceIds.some((instanceId) => !byId.has(instanceId))
+      ) {
+        throw new Error("Widget instance order does not match the current instances.");
+      }
+      browserInstances = instanceIds.map((instanceId) => byId.get(instanceId)!);
+      emitBrowserChange();
+      return browserInstances;
+    }
+    return hostBridge.invoke<readonly WidgetInstance[]>("widget_instances_reorder", {
+      instanceIds: [...instanceIds],
+    });
+  },
+
   async remove(instanceId: string): Promise<void> {
     if (!isTauriHost()) {
       browserInstances = browserInstances.filter(

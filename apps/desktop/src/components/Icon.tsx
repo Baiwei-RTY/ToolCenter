@@ -4,6 +4,7 @@ import "@mdui/icons/add.js";
 import "@mdui/icons/apps--rounded.js";
 import "@mdui/icons/arrow-back--rounded.js";
 import "@mdui/icons/arrow-forward.js";
+import "@mdui/icons/aspect-ratio.js";
 import "@mdui/icons/bug-report--outlined.js";
 import "@mdui/icons/build--rounded.js";
 import "@mdui/icons/check.js";
@@ -12,6 +13,8 @@ import "@mdui/icons/close.js";
 import "@mdui/icons/crop-square.js";
 import "@mdui/icons/dark-mode--outlined.js";
 import "@mdui/icons/delete-outline.js";
+import "@mdui/icons/drag-indicator.js";
+import "@mdui/icons/expand-less.js";
 import "@mdui/icons/expand-more.js";
 import "@mdui/icons/extension--outlined.js";
 import "@mdui/icons/favorite-border.js";
@@ -23,8 +26,13 @@ import "@mdui/icons/help-outline.js";
 import "@mdui/icons/history.js";
 import "@mdui/icons/home--outlined.js";
 import "@mdui/icons/info.js";
+import "@mdui/icons/insert-chart-outlined--rounded.js";
 import "@mdui/icons/insert-drive-file--outlined.js";
 import "@mdui/icons/language.js";
+import "@mdui/icons/layers.js";
+import "@mdui/icons/lock-open.js";
+import "@mdui/icons/lock.js";
+import "@mdui/icons/monitor.js";
 import "@mdui/icons/monitor-heart--outlined.js";
 import "@mdui/icons/more-vert.js";
 import "@mdui/icons/note--outlined.js";
@@ -43,6 +51,7 @@ import "@mdui/icons/stop.js";
 import "@mdui/icons/storage--outlined.js";
 import "@mdui/icons/timer--outlined.js";
 import "@mdui/icons/view-list.js";
+import "@mdui/icons/visibility.js";
 import "@mdui/icons/volume-up--outlined.js";
 import "@mdui/icons/warning-amber.js";
 import "@mdui/icons/wb-sunny--outlined.js";
@@ -57,12 +66,14 @@ export type IconName =
   | "chart"
   | "check"
   | "chevron-down"
+  | "chevron-up"
   | "chevron-right"
   | "close"
   | "command"
   | "dark"
   | "delete"
   | "diagnostics"
+  | "drag"
   | "external"
   | "favorite"
   | "favorite-filled"
@@ -75,9 +86,13 @@ export type IconName =
   | "home"
   | "info"
   | "language"
+  | "layers"
   | "list"
+  | "lock"
+  | "lock-open"
   | "maximize"
   | "minimize"
+  | "monitor"
   | "more"
   | "note"
   | "page"
@@ -89,12 +104,15 @@ export type IconName =
   | "search"
   | "settings"
   | "shield"
+  | "size"
   | "stop"
   | "storage"
   | "timer"
   | "tools"
   | "warning"
   | "weather"
+  | "visibility"
+  | "widget-chart"
   | "widgets";
 
 const iconElements: Record<IconName, string> = {
@@ -107,12 +125,14 @@ const iconElements: Record<IconName, string> = {
   chart: "mdui-icon-show-chart--rounded",
   check: "mdui-icon-check",
   "chevron-down": "mdui-icon-expand-more",
+  "chevron-up": "mdui-icon-expand-less",
   "chevron-right": "mdui-icon-chevron-right",
   close: "mdui-icon-close",
   command: "mdui-icon-grid-view--outlined",
   dark: "mdui-icon-dark-mode--outlined",
   delete: "mdui-icon-delete-outline",
   diagnostics: "mdui-icon-bug-report--outlined",
+  drag: "mdui-icon-drag-indicator",
   external: "mdui-icon-open-in-new--rounded",
   favorite: "mdui-icon-favorite-border",
   "favorite-filled": "mdui-icon-favorite",
@@ -125,9 +145,13 @@ const iconElements: Record<IconName, string> = {
   home: "mdui-icon-home--outlined",
   info: "mdui-icon-info",
   language: "mdui-icon-language",
+  layers: "mdui-icon-layers",
   list: "mdui-icon-view-list",
+  lock: "mdui-icon-lock",
+  "lock-open": "mdui-icon-lock-open",
   maximize: "mdui-icon-crop-square",
   minimize: "mdui-icon-remove",
+  monitor: "mdui-icon-monitor",
   more: "mdui-icon-more-vert",
   note: "mdui-icon-note--outlined",
   page: "mdui-icon-insert-drive-file--outlined",
@@ -139,12 +163,15 @@ const iconElements: Record<IconName, string> = {
   search: "mdui-icon-search--rounded",
   settings: "mdui-icon-settings--outlined",
   shield: "mdui-icon-shield--outlined",
+  size: "mdui-icon-aspect-ratio",
   stop: "mdui-icon-stop",
   storage: "mdui-icon-storage--outlined",
   timer: "mdui-icon-timer--outlined",
   tools: "mdui-icon-build--rounded",
   warning: "mdui-icon-warning-amber",
   weather: "mdui-icon-wb-sunny--outlined",
+  visibility: "mdui-icon-visibility",
+  "widget-chart": "mdui-icon-insert-chart-outlined--rounded",
   widgets: "mdui-icon-grid-view--outlined",
 };
 

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, MutexGuard};
@@ -273,6 +273,47 @@ pub fn update(
     Ok(updated)
 }
 
+pub fn reorder(
+    state: &CoreState,
+    instance_ids: &[String],
+) -> Result<Vec<WidgetInstance>, AppError> {
+    for instance_id in instance_ids {
+        validate_segment(instance_id, "widget instance id")?;
+    }
+    let _guard = state.lock_io()?;
+    let mut instances = load_unlocked(state)?;
+    let requested_ids = instance_ids
+        .iter()
+        .map(String::as_str)
+        .collect::<HashSet<_>>();
+    let existing_ids = instances
+        .iter()
+        .map(|instance| instance.instance_id.as_str())
+        .collect::<HashSet<_>>();
+    if instance_ids.len() != instances.len()
+        || requested_ids.len() != instance_ids.len()
+        || requested_ids != existing_ids
+    {
+        return Err(AppError::invalid_input(
+            "Widget instance order does not match the current instances.",
+        ));
+    }
+
+    let order = instance_ids
+        .iter()
+        .enumerate()
+        .map(|(index, instance_id)| (instance_id.as_str(), index))
+        .collect::<HashMap<_, _>>();
+    instances.sort_by_key(|instance| {
+        order
+            .get(instance.instance_id.as_str())
+            .copied()
+            .unwrap_or(usize::MAX)
+    });
+    save_unlocked(state, &instances)?;
+    Ok(instances)
+}
+
 pub fn remove(state: &CoreState, instance_id: &str) -> Result<(), AppError> {
     validate_segment(instance_id, "widget instance id")?;
     let _guard = state.lock_io()?;
@@ -462,7 +503,14 @@ fn tauri_error(error: tauri::Error) -> AppError {
 
 #[cfg(test)]
 mod tests {
-    use super::{NormalizedPosition, WidgetDimensions};
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use super::{
+        NormalizedPosition, WidgetDimensions, WidgetDisplayMode, WidgetInstance, WidgetSize,
+        reorder, save_unlocked,
+    };
+    use crate::state::CoreState;
 
     #[test]
     fn clamps_normalized_positions() {
@@ -492,5 +540,69 @@ mod tests {
             .validated()
             .is_err()
         );
+    }
+
+    #[test]
+    fn persists_complete_widget_instance_order() {
+        let directory = temporary_test_directory("reorder");
+        let state = CoreState::new(directory.clone());
+        save_unlocked(
+            &state,
+            &[
+                test_instance("one"),
+                test_instance("two"),
+                test_instance("three"),
+            ],
+        )
+        .expect("instances should save");
+
+        let reordered = reorder(
+            &state,
+            &["three".to_string(), "one".to_string(), "two".to_string()],
+        )
+        .expect("complete order should save");
+        assert_eq!(
+            reordered
+                .iter()
+                .map(|instance| instance.instance_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["three", "one", "two"]
+        );
+
+        let invalid = reorder(&state, &["one".to_string(), "one".to_string()])
+            .expect_err("duplicate and incomplete order must be rejected");
+        assert_eq!(invalid.code, "input.invalid");
+        fs::remove_dir_all(directory).expect("temporary test directory should be removable");
+    }
+
+    fn test_instance(instance_id: &str) -> WidgetInstance {
+        WidgetInstance {
+            instance_id: instance_id.to_string(),
+            plugin_id: "toolcenter.test".to_string(),
+            widget_id: "test-widget".to_string(),
+            size: WidgetSize::Small,
+            visible: true,
+            locked: false,
+            display_mode: WidgetDisplayMode::Desktop,
+            monitor_id: "monitor".to_string(),
+            position: NormalizedPosition { x: 0.04, y: 0.04 },
+            last_valid_position: NormalizedPosition { x: 0.04, y: 0.04 },
+            dimensions: WidgetDimensions {
+                width: 260.0,
+                height: 160.0,
+            },
+            scale_factor: 1.0,
+        }
+    }
+
+    fn temporary_test_directory(label: &str) -> std::path::PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock should be valid")
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "toolcenter-widgets-{label}-{}-{unique}",
+            std::process::id()
+        ))
     }
 }
