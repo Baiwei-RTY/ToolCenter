@@ -120,7 +120,8 @@
 .tc-hdr-widget__selector {
   display: grid;
   min-width: 0;
-  grid-column: 1 / -1;
+  grid-column: 1;
+  grid-row: 3;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 7px;
@@ -143,9 +144,9 @@
 
 .tc-hdr-widget__toggle {
   min-width: 88px;
-  min-height: 34px;
+  min-height: 30px;
   grid-column: 2;
-  grid-row: 4;
+  grid-row: 3;
   border-color: transparent;
   background: var(--color-primary-container);
   color: var(--color-on-primary-container);
@@ -154,7 +155,7 @@
 .tc-hdr-widget__feedback {
   display: flex;
   min-width: 0;
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 4;
   align-items: center;
   overflow: hidden;
@@ -195,13 +196,9 @@
   padding: 8px 10px 5px;
 }
 
-.tc-hdr-widget--small:not(.tc-hdr-widget--state) .tc-hdr-widget__selector {
-  grid-column: 1;
-  grid-row: 3;
-}
-
 .tc-hdr-widget--small:not(.tc-hdr-widget--state) .tc-hdr-widget__toggle {
-  grid-row: 3;
+  align-self: center;
+  font-size: 11px;
 }
 
 .tc-hdr-widget--small:not(.tc-hdr-widget--state) .tc-hdr-widget__feedback {

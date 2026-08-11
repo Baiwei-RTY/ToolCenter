@@ -13,7 +13,7 @@ const sourceExecutable = path.join(
   "release",
   "toolcenter-desktop.exe",
 );
-const releaseDirectory = path.join(workspaceRoot, "正式版");
+const releaseDirectory = path.join(workspaceRoot, "发布版");
 const releaseExecutable = path.join(releaseDirectory, "ToolCenter.exe");
 
 const rootPackage = JSON.parse(
@@ -49,4 +49,4 @@ await writeFile(
   "utf8",
 );
 
-console.log(`Updated formal release: ${path.relative(workspaceRoot, releaseExecutable)}`);
+console.log(`Updated release package: ${path.relative(workspaceRoot, releaseExecutable)}`);

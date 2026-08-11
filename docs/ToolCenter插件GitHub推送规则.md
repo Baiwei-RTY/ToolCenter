@@ -145,12 +145,12 @@ target/
 coverage/
 *.log
 .env*
-正式版/ToolCenter.exe
-正式版/ToolCenter.exe.sha256
-正式版/版本信息.json
+发布版/ToolCenter.exe
+发布版/ToolCenter.exe.sha256
+发布版/版本信息.json
 ```
 
-`正式版/使用说明.md` 可以作为项目文档提交。
+`发布版/使用说明.md` 可以作为项目文档提交。
 
 EXE、安装包和压缩包只能在正式验收后，通过 GitHub Release 发布。
 
@@ -217,7 +217,7 @@ PR 合并不等于正式版发布。
 ```text
 合并源码
 → 在 main 上重新验证
-→ 构建唯一正式版
+→ 构建固定发布版
 → 检查 EXE 哈希
 → 实际启动验收
 → 用户确认发布
@@ -230,7 +230,7 @@ PR 合并不等于正式版发布。
 .\toolcenter.cmd release-build
 ```
 
-该命令会覆盖固定的 `正式版/`，执行前必须获得用户确认。
+该命令会覆盖固定的 `发布版/`，执行前必须获得用户确认。
 
 创建或更新 GitHub Release、上传 EXE、安装包或压缩包前，也必须再次获得用户确认并执行敏感信息检查。
 

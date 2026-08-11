@@ -7,7 +7,12 @@ coverage/
 # Rust build output
 target/
 
-# Generated formal release artifacts (publish through GitHub Releases)
+# Generated release artifacts (publish through GitHub Releases)
+/发布版/ToolCenter.exe
+/发布版/ToolCenter.exe.sha256
+/发布版/版本信息.json
+
+# Legacy formal-release snapshot retained for migration rollback
 /正式版/ToolCenter.exe
 /正式版/ToolCenter.exe.sha256
 /正式版/版本信息.json

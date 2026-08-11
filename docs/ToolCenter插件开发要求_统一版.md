@@ -740,7 +740,7 @@ corepack pnpm registry:generate
 
 生成器扫描 `plugins/*/plugin.manifest.ts` 并更新 `apps/desktop/src/plugin-registry.generated.ts`。开发者不得手动编辑生成结果，也不得在 Shell 首屏同步导入所有插件入口。
 
-已经打包的 `正式版/ToolCenter.exe` 不会热加载工作区外的 TypeScript 源码。开发时使用 `plugin-dev`；插件完成、合并并获得用户确认后，才用 `release-build` 写入唯一正式程序。
+已经打包的 `发布版/ToolCenter.exe` 不会热加载工作区外的 TypeScript 源码。开发时使用 `plugin-dev`；插件完成、合并并获得用户确认后，才用 `release-build` 写入默认发布程序。
 
 ### 13.5 一个插件一个负责对话
 
@@ -902,19 +902,19 @@ Widget 还必须验证：
 - 安全和发布风险
 - Git 分支、提交、PR 或 Release 状态（仅在用户授权执行后）
 
-## 17. 正式版更新规则
+## 17. 发布版更新规则
 
-项目只维护一套正式源码和一个正式交付目录：
+项目只维护一套正式源码和一个固定的默认发布目录：
 
 ```text
-正式版/
+发布版/
 ├─ ToolCenter.exe
 ├─ ToolCenter.exe.sha256
 ├─ 版本信息.json
 └─ 使用说明.md
 ```
 
-不得创建 `ToolCenter-vX.Y.Z/` 一类代码或程序副本。历史版本通过 Git 提交和标签管理。
+不得创建 `ToolCenter-vX.Y.Z/` 一类代码或程序副本。历史版本通过 Git 提交和标签管理。原 `正式版/` 仅作为 2026-08-11 迁移前的回退快照保留，不再由构建脚本更新。
 
 只有用户明确确认后才可以运行：
 
@@ -922,7 +922,7 @@ Widget 还必须验证：
 .\toolcenter.cmd release-build
 ```
 
-该命令会执行完整检查、构建并覆盖 `正式版/` 中的同名交付文件。已打包 EXE 不会热加载外部 TypeScript 源码，插件修改后必须重新构建。
+该命令会执行完整检查、构建并覆盖 `发布版/` 中的同名交付文件。已打包 EXE 不会热加载外部 TypeScript 源码，插件修改后必须重新构建。
 
 PR 合并不等于正式发布。推荐顺序：
 
@@ -1022,12 +1022,12 @@ GitHub CLI 输出中的认证 Token 即使已遮罩，也不得复制进代码�
 源码 PR 不上传：
 
 ```text
-正式版/ToolCenter.exe
-正式版/ToolCenter.exe.sha256
-正式版/版本信息.json
+发布版/ToolCenter.exe
+发布版/ToolCenter.exe.sha256
+发布版/版本信息.json
 ```
 
-`正式版/使用说明.md` 可以作为文档提交。EXE、安装包和压缩包只能在正式验收及用户确认后通过 GitHub Release 发布。
+`发布版/使用说明.md` 可以作为文档提交。EXE、安装包和压缩包只能在正式验收及用户确认后通过 GitHub Release 发布。
 
 ### 18.5 推送、PR 与合并
 
