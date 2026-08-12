@@ -2885,11 +2885,19 @@ html[data-surface="widget-host"] #root {
 }
 
 .widget-host__instance[data-plugin-id="toolcenter.sticky-notes"] {
+  --sticky-widget-corner-radius: 18px;
+
   display: block;
   border: 0;
-  border-radius: 18px;
+  border-radius: var(--sticky-widget-corner-radius);
   background: transparent;
+  clip-path: inset(0 round var(--sticky-widget-corner-radius));
   box-shadow: none;
+  isolation: isolate;
+}
+
+.widget-host__instance[data-plugin-id="toolcenter.sticky-notes"][data-widget-size="small"] {
+  --sticky-widget-corner-radius: 15px;
 }
 
 .widget-host__instance[data-plugin-id="toolcenter.sticky-notes"] > .widget-host__controls {

@@ -66,6 +66,7 @@ export interface WidgetRegion {
   readonly y: number;
   readonly width: number;
   readonly height: number;
+  readonly radius: number;
 }
 
 const browserMonitor: WidgetMonitor = {

@@ -521,13 +521,18 @@ function collectInteractiveRegions(root: HTMLDivElement | null): WidgetRegion[] 
     return [];
   }
   return [...document.querySelectorAll<HTMLElement>("[data-toolcenter-widget-region]")]
-    .map((element) => element.getBoundingClientRect())
-    .filter((rectangle) => rectangle.width > 0 && rectangle.height > 0)
-    .map((rectangle) => ({
+    .map((element) => {
+      const rectangle = element.getBoundingClientRect();
+      const radius = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius);
+      return { rectangle, radius: Number.isFinite(radius) ? Math.max(0, radius) : 0 };
+    })
+    .filter(({ rectangle }) => rectangle.width > 0 && rectangle.height > 0)
+    .map(({ rectangle, radius }) => ({
       x: rectangle.left,
       y: rectangle.top,
       width: rectangle.width,
       height: rectangle.height,
+      radius,
     }));
 }
 

@@ -27,6 +27,8 @@ pub struct WidgetRegion {
     y: f64,
     width: f64,
     height: f64,
+    #[serde(default)]
+    radius: f64,
 }
 
 #[tauri::command]
@@ -233,7 +235,7 @@ fn set_window_regions(
     regions: Option<&[WidgetRegion]>,
 ) -> Result<(), AppError> {
     use windows::Win32::Graphics::Gdi::{
-        CombineRgn, CreateRectRgn, DeleteObject, HGDIOBJ, RGN_OR, SetWindowRgn,
+        CombineRgn, CreateRectRgn, CreateRoundRectRgn, DeleteObject, HGDIOBJ, RGN_OR, SetWindowRgn,
     };
 
     let hwnd = window
@@ -261,8 +263,10 @@ fn set_window_regions(
                 || !region.y.is_finite()
                 || !region.width.is_finite()
                 || !region.height.is_finite()
+                || !region.radius.is_finite()
                 || region.width <= 0.0
                 || region.height <= 0.0
+                || region.radius < 0.0
             {
                 let _ = DeleteObject(HGDIOBJ(combined.0));
                 return Err(AppError::invalid_input("Widget region is invalid."));
@@ -271,16 +275,25 @@ fn set_window_regions(
             let top = (region.y * scale).round() as i32;
             let right = ((region.x + region.width) * scale).round() as i32;
             let bottom = ((region.y + region.height) * scale).round() as i32;
-            let rectangle = CreateRectRgn(left, top, right, bottom);
-            if rectangle.is_invalid() {
+            let corner_radius = region
+                .radius
+                .min(region.width / 2.0)
+                .min(region.height / 2.0);
+            let corner_diameter = (corner_radius * 2.0 * scale).round() as i32;
+            let widget_region = if corner_diameter > 0 {
+                CreateRoundRectRgn(left, top, right, bottom, corner_diameter, corner_diameter)
+            } else {
+                CreateRectRgn(left, top, right, bottom)
+            };
+            if widget_region.is_invalid() {
                 let _ = DeleteObject(HGDIOBJ(combined.0));
                 return Err(AppError::new(
                     "widgets.region-failed",
-                    "Unable to create a widget hit-test rectangle.",
+                    "Unable to create a widget hit-test region.",
                 ));
             }
-            let _ = CombineRgn(Some(combined), Some(combined), Some(rectangle), RGN_OR);
-            let _ = DeleteObject(HGDIOBJ(rectangle.0));
+            let _ = CombineRgn(Some(combined), Some(combined), Some(widget_region), RGN_OR);
+            let _ = DeleteObject(HGDIOBJ(widget_region.0));
         }
         if SetWindowRgn(hwnd, Some(combined), true) == 0 {
             let _ = DeleteObject(HGDIOBJ(combined.0));

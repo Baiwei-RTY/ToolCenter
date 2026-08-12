@@ -25,17 +25,18 @@
 - 在当前 Windows 电脑上完成 DisplayConfig 活动目标和 HDR 状态的真实只读查询（未改变 HDR 设置）；
 - 内置 `toolcenter.hdr-toggle` Widget 已接入插件中心，支持选择目标显示器、读取 HDR 状态以及按实例保存选择；
 - HDR Widget 已修复 160 px 紧凑高度下操作按钮被裁切的问题，并完成正式版桌面壳复查；当前“开启 HDR”按钮可见，本次验收未改变系统 HDR 状态；
-- 2026-08-11 经用户确认，默认发布输出由 `正式版/` 迁移到固定 `发布版/`；原目录作为迁移前回退快照保留，后续 `release-build` 只覆盖 `发布版/`；
+- 2026-08-11 经用户确认，默认发布输出由 `正式版/` 迁移到固定 `发布版/`；清理前基线提交建立后原目录已删除，后续 `release-build` 只覆盖 `发布版/`，历史回退使用 Git；
 - `PluginContext.credentials` 已接入 Windows 凭据管理器，只提供写入、存在性检查与删除，前端无法读回明文；
 - `PluginContext.network` 已接入共享 Rust HTTPS GET 服务，包含 `network.request` 二次校验、凭据头注入、超时、响应上限和本地目标拦截；
 - 内置 `toolcenter.market-watch` Page + Widget 已按确认稿重构为简约深色行情终端，支持 Twelve Data 股票/外汇、Kraken 公共现货、Binance 公共数字资产期货、自选产品、按供应商免费额度节流的可见刷新、折线 / K 线、1 日 / 5 日 / 1 月、滚轮缩放和按住拖动平移；
 - 内置 `toolcenter.sticky-notes` Widget 已按确认稿重构为暖纸便签，支持独立标题与正文、清单拖动排序、可调上下分割线、顶部边缘拖动、旧版数据迁移和按实例持久化；
 - 暖纸便签已完成视觉稿同画布与局部对照、Small/Medium/Wide 响应式验收及浏览器核心交互回归；最新对齐复验已消除 MDUI 图标内部 SVG 的行高偏移，`.\toolcenter.cmd verify` 通过 83 项前端测试和 21 项 Rust 测试；
 - 暖纸便签已确认正式源码与预览使用同一 Windows 中文 UI 字体栈，并按归一化比例校准三档标题、清单、添加入口和保存状态字号；当前运行的预览基准、修改前/后截图及 Figma 标注板均已完成视觉复验，三档新增清单项后无横纵向溢出；
+- Widget Host 的原生 Windows 窗口区域现会同步各组件的实际圆角半径，并配合便签自身裁剪保持透明宿主边缘稳定；2026-08-12 已在真实桌面壳中确认便签获得焦点、鼠标移出及窗口失焦后四角均不再退化为直角；
 - 已接入视觉交接 v1.0.2 的正式应用图标；
 - 已建立固定 `发布版/ToolCenter.exe` 输出，以及插件直接进入真实 ToolCenter 桌面壳的开发命令。
-- 本轮便签重构在 `codex/sticky-notes-warm-paper` 分支开发，尚未执行 `release-build`，未覆盖 `正式版/`。
-- 真实开发版 `target/debug/toolcenter-desktop.exe` 已成功启动；Windows 窗口捕获辅助器当前无法取得窗口状态，因此便签数据的真实重启恢复仍保留为人工桌面复验项。
+- 2026-08-12 已执行 `release-build`，将便签失焦圆角修复覆盖至固定 `发布版/`；发布程序 SHA-256 为 `ea1ea58cae174eb6547b46bcdb650f05d27d0a8b97cc557e4ed2cbc1d5a877b5`，历史版本与回退继续使用 Git 提交和标签。
+- 真实开发版 `target/debug/toolcenter-desktop.exe` 已成功启动；本轮完整验证通过 90 项前端测试和 22 项 Rust 测试，便签焦点切换圆角回归已完成桌面实机复验。
 - 内置 `toolcenter.pomodoro-timer` Widget 已按确认的 Material 3 紫色方案完成正式源码重构，删除时间上方装饰圆点，支持三档尺寸、设置时长、开始/暂停/继续/重置、按实例持久化与共享 Scheduler；
 - 专注结束会播放升调提示音、完成轮数增加一次并自动开始休息；休息结束会播放降调提示音并停下等待下一轮专注；跨休眠或重启后按绝对结束时间恢复；
 - 番茄钟已完成浏览器三档视觉复核与真实 Tauri 桌面壳交互回归；全量验证通过 90 项前端测试和 22 项 Rust 测试，Web 生产构建通过；

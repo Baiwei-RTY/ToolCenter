@@ -77,7 +77,8 @@ corepack pnpm --filter @tool-center/plugin-sticky-notes test
 7. Small、Medium、Wide 均无横向溢出，内容较多时清单可滚动；
 8. 两个实例的数据互不串扰；
 9. 保存失败时显示错误并可以重试；
-10. 插件禁用或 Widget 删除后没有残留计时器。
+10. 插件禁用或 Widget 删除后没有残留计时器；
+11. 鼠标移出便签或窗口失去焦点后，四个圆角仍保持不变，不出现直角闪变。
 
 ## 已知限制
 
@@ -89,7 +90,7 @@ corepack pnpm --filter @tool-center/plugin-sticky-notes test
 
 - 本轮外观重构在 `codex/sticky-notes-warm-paper` 分支进行；
 - 旧数据通过 schema 迁移保留，可通过切回原分支回退代码；
-- `.\toolcenter.cmd verify` 已通过：20 个前端测试文件共 83 项、21 项 Rust 测试，以及类型检查、Lint、插件校验、Rustfmt 和 Clippy；
+- `.\toolcenter.cmd verify` 已通过：22 个前端测试文件共 90 项、22 项 Rust 测试，以及类型检查、Lint、插件校验、Rustfmt 和 Clippy；
 - 字体一致性已用当前运行预览、修改前/后 450×262 截图和 Figma 标注板复验；Small、Medium、Wide 新增单项清单后均无横纵向溢出或底部工具栏重叠；
-- 真实 `target/debug/toolcenter-desktop.exe` 已由 `plugin-dev` 成功启动；当前 Windows 窗口捕获辅助器无法取得画面，因此重启持久化仍保留为人工桌面复验项；
-- 尚未执行 `release-build`，未覆盖根目录 `正式版/`。
+- 真实 `target/debug/toolcenter-desktop.exe` 已由 `plugin-dev` 成功启动；2026-08-12 已实机验证便签在窗口聚焦、失焦和鼠标移出状态下四角均保持圆角；
+- 2026-08-12 已执行 `release-build` 并覆盖根目录 `发布版/`；发布程序 SHA-256 为 `ea1ea58cae174eb6547b46bcdb650f05d27d0a8b97cc557e4ed2cbc1d5a877b5`。
