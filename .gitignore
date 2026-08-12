@@ -12,11 +12,6 @@ target/
 /发布版/ToolCenter.exe.sha256
 /发布版/版本信息.json
 
-# Legacy formal-release snapshot retained for migration rollback
-/正式版/ToolCenter.exe
-/正式版/ToolCenter.exe.sha256
-/正式版/版本信息.json
-
 # Local design handoff and reference exports
 /设计交接/
 /ToolCenter-视觉交接-v*/
