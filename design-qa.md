@@ -1,5 +1,35 @@
 # ToolCenter 设计验收记录
 
+## 当前验收：FlClash 控制小组件 Material 3 正式实现
+
+### 对照对象与证据
+
+- 视觉来源：对话中用户选定的紫色 Material 3 FlClash 小组件方案；原图位于本机生成图目录，未复制进发布包。
+- 正式组件证据：`plugins/flclash-controller/design-qa-artifacts/formal-medium-final.jpg`、`formal-wide-final.jpg`。
+- 节点菜单证据：`plugins/flclash-controller/design-qa-artifacts/formal-menu-final.jpg`。
+- 验收尺寸：Medium 360×220、Wide 520×220；均加载正式 `FlClashWidget`，验收壳只提供确定性本地状态，不进入生产构建。
+
+### 视觉与结构结论
+
+- 保留选定方案的紫色圆角容器、圆形 FlClash 标志、连接状态、醒目主开关、运行状态胶囊、代理组和当前节点两块信息卡。
+- 标志已换为重新校正过的居中资源，白色三角连接符在圆形底板内保持视觉居中，不再使用错位截图资源。
+- 主开关、刷新、展开和选中状态使用正式 `@mdui/icons`；颜色统一为紫色系，绿色仅表达已连接/运行。
+- 节点控件使用组件内 Material 3 菜单，不调用 Windows 原生蓝色下拉框；中尺寸为当前节点分配更多宽度，`Japan 04 · 38 ms` 可完整显示。
+- 节点菜单宽 320 px，可完整展示日本、新加坡、香港、美国节点及末尾测速；菜单超出小组件时会注册为 Widget Host 可交互区域。
+- Wide 使用与 Medium 相同的纵向信息层级，增加文字可用宽度，避免并排压缩导致的标题和测速截断。
+
+### 功能与可访问性
+
+- 已实际验证节点选择从日本切换到新加坡，界面更新为 `Singapore 02 · 52 ms`；已验证主开关从运行切换到停止。
+- 正式实现仍通过 `PluginContext` 的权限、存储、共享 Scheduler 和 `ProxyClientService`，没有在插件源码中加入模拟数据或绕过 Rust 权限层。
+- 下拉按钮具备 `aria-haspopup`、`aria-expanded`、`aria-controls`，菜单使用 `listbox/option`、选中状态和 Esc/方向键逻辑；焦点轮廓保留。
+- 菜单使用固定坐标并根据屏幕剩余空间自动决定向上或向下展开，避免桌面底部实例裁切。
+- 未解决 P0/P1/P2：无。极长自定义节点名仍会在关闭状态下单行省略，展开菜单后可查看更完整内容，记录为可接受 P3。
+
+final result: passed
+
+---
+
 ## 当前验收：插件管理静谧 Material 3 主从布局
 
 ### 基线与证据

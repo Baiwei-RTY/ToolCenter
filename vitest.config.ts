@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     exclude: [
       ...configDefaults.exclude,
+      ".codex-preview/**",
       "design-prototypes/**",
       "design-previews/**",
       "design-qa-artifacts/**",

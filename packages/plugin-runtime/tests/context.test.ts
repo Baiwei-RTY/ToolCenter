@@ -1,6 +1,8 @@
 import type {
   AudioDeviceChange,
   DisplaySummary,
+  ProxyClientStatus,
+  ProxyGroupSummary,
   Release,
 } from "@tool-center/plugin-contract";
 import { describe, expect, it, vi } from "vitest";
@@ -153,5 +155,90 @@ describe("PluginContext credential and network services", () => {
     await expect(
       context.network.getJson({ url: "https://api.example.com/data" }),
     ).rejects.toThrow("NetworkService is not available in browser mode.");
+  });
+});
+
+describe("PluginContext proxy client service", () => {
+  it("passes the plugin id and proxy selection to the native host", async () => {
+    const status: ProxyClientStatus = {
+      controllerAvailable: true,
+      version: "1.19.0",
+      mode: "rule",
+      mixedPort: 7890,
+      proxyEnabled: false,
+    };
+    const groups: readonly ProxyGroupSummary[] = [
+      {
+        name: "节点选择",
+        selected: "节点 A",
+        all: ["节点 A", "节点 B"],
+        nodes: [
+          { name: "节点 A", delayMs: 86, latencyStatus: "available" },
+          { name: "节点 B", delayMs: null, latencyStatus: "untested" },
+        ],
+      },
+    ];
+    const invoke = vi.fn();
+    const bridge: HostBridge = {
+      invoke: async <TResult>(
+        command: string,
+        payload?: Record<string, unknown>,
+      ): Promise<TResult> => {
+        invoke(command, payload);
+        if (command === "proxy_client_status") return status as TResult;
+        if (command === "proxy_groups_list") return groups as TResult;
+        return undefined as TResult;
+      },
+      listen: async (): Promise<Release> => () => undefined,
+    };
+    const context = createPluginContextFactory({ bridge }).create(
+      "toolcenter.flclash-controller",
+      "toolcenter.flclash-controller:widget:one",
+    ).context;
+
+    await expect(context.proxyClient.getStatus()).resolves.toEqual(status);
+    await expect(context.proxyClient.listGroups()).resolves.toEqual(groups);
+    await context.proxyClient.selectProxy("节点选择", "节点 B");
+    await context.proxyClient.setProxyEnabled(true);
+
+    expect(invoke).toHaveBeenNthCalledWith(1, "proxy_client_status", {
+      pluginId: "toolcenter.flclash-controller",
+    });
+    expect(invoke).toHaveBeenNthCalledWith(2, "proxy_groups_list", {
+      pluginId: "toolcenter.flclash-controller",
+    });
+    expect(invoke).toHaveBeenNthCalledWith(3, "proxy_group_select", {
+      pluginId: "toolcenter.flclash-controller",
+      groupName: "节点选择",
+      proxyName: "节点 B",
+    });
+    expect(invoke).toHaveBeenNthCalledWith(4, "proxy_client_set_enabled", {
+      pluginId: "toolcenter.flclash-controller",
+      enabled: true,
+    });
+  });
+
+  it("exposes only an unavailable read state in browser mode", async () => {
+    const context = createPluginContextFactory({
+      bridge: new MemoryHostBridge(),
+    }).create(
+      "toolcenter.flclash-controller",
+      "toolcenter.flclash-controller:widget:one",
+    ).context;
+
+    await expect(context.proxyClient.getStatus()).resolves.toEqual({
+      controllerAvailable: false,
+      version: null,
+      mode: null,
+      mixedPort: null,
+      proxyEnabled: false,
+    });
+    await expect(context.proxyClient.listGroups()).resolves.toEqual([]);
+    await expect(context.proxyClient.selectProxy("节点选择", "节点 A")).rejects.toThrow(
+      "ProxyClientService control is not available in browser mode.",
+    );
+    await expect(context.proxyClient.setProxyEnabled(true)).rejects.toThrow(
+      "ProxyClientService control is not available in browser mode.",
+    );
   });
 });

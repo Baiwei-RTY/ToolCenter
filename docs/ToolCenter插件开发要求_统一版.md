@@ -5,15 +5,15 @@
 | 项目 | 内容 |
 |---|---|
 | 文档编号 | TC-PLUGIN-UNIFIED-001 |
-| 版本 | 2.0 |
+| 版本 | 2.1 |
 | 状态 | 当前唯一正式插件开发规范 |
-| 更新日期 | 2026-07-26 |
+| 更新日期 | 2026-08-12 |
 | 适用宿主 | ToolCenter 0.1.0 及后续兼容版本 |
 | 适用范围 | 随 ToolCenter 源码构建的受信任第一方插件 |
 | 开发模式 | 一个 ToolCenter 宿主、一个插件一个开发对话 |
 | 维护位置 | `docs/ToolCenter插件开发要求_统一版.md` |
 
-本文件汇总此前已经确定的全部插件开发要求，包括原始架构规范、独立对话开发模式、正式插件中心接入流程、Widget Host、Windows 音频和 HDR 能力、视觉交接 v1.0.2、性能与资源预算、测试门禁、GitHub 推送、正式版构建和公开仓库安全规则。
+本文件汇总此前已经确定的全部插件开发要求，包括原始架构规范、独立对话开发模式、正式插件中心接入流程、Widget Host、Windows 音频、HDR 和受限本机代理能力、视觉交接 v1.0.2、性能与资源预算、测试门禁、GitHub 推送、正式版构建和公开仓库安全规则。
 
 本文件是当前唯一主规范。以下文件保留为历史依据、专项说明或可复制提示词；内容冲突时以本文件和当前代码为准：
 
@@ -29,6 +29,7 @@
 |---|---|---|
 | 1.0 | 2026-07-24 | 汇总插件结构、入口、权限、Widget、音频、HDR、测试和正式版接入要求 |
 | 2.0 | 2026-07-26 | 合并全部既有要求，补充视觉 v1.0.2、性能预算、GitHub 完整流程、插件发布边界和当前实现事实 |
+| 2.1 | 2026-08-12 | 新增受限本机代理客户端服务、`proxy.read` / `proxy.control` 权限及系统代理安全边界 |
 
 当文档与实现不一致时，事实来源优先级为：
 
@@ -383,6 +384,7 @@ Widget 标题和拖动区固定为 40 px；标题区左右内边距 12 px，正�
 | `display` | Windows 活动显示器读取、HDR 状态和指定显示器 HDR 切换 |
 | `credentials` | 按插件隔离的 Windows 安全凭据写入、存在性检查和删除；不提供明文读取 |
 | `network` | 受 `network.request` 保护的只读 HTTPS JSON 请求，可由 Rust 注入安全凭据 |
+| `proxyClient` | 固定访问 FlClash ToolCenter 定制版的本机 `127.0.0.1:19090`，读取代理组、切换组内节点，并通过专用快捷键控制 FlClash 主代理开关 |
 
 ### 7.2 尚未开放
 
@@ -441,6 +443,7 @@ Widget 标题和拖动区固定为 40 px；标题区左右内边距 12 px，正�
 | 显示器 | `display.read`、`display.control` |
 | 系统 | `system.read-basic`、`system.monitor`、`system.process-read`、`system.process-control` |
 | 网络和通知 | `network.request`、`notifications.show` |
+| 本机代理 | `proxy.read`、`proxy.control` |
 | 后台和窗口 | `hotkeys.register`、`background.run`、`window.detached` |
 | 外部操作 | `shell.open-safe`、`administrator.request` |
 
@@ -458,6 +461,26 @@ Widget 标题和拖动区固定为 40 px；标题区左右内边距 12 px，正�
 - 正确处理凭据不存在、权限拒绝、超时、非成功 HTTP 状态、响应过大和无效 JSON
 - 不把凭据放入 URL、查询参数、错误信息、通知、日志、测试夹具或 Git 文件
 - 浏览器 Memory Host 不执行真实网络请求；端到端数据验收必须使用真实 ToolCenter Tauri 桌面壳
+
+### 8.4 受限本机代理客户端
+
+使用 `PluginContext.proxyClient` 时必须：
+
+- 状态、版本、端口、代理组和当前节点读取使用 `proxy.read`
+- 节点选择和 FlClash 主代理开关单独使用 `proxy.control`
+- 插件不得传入、保存或拼接控制器地址；宿主固定只访问 FlClash ToolCenter 定制版的 `http://127.0.0.1:19090`
+- 不得把 `proxyClient` 当作通用本机 HTTP、任意 Mihomo 控制器或远程代理管理能力
+- 切换节点前重新读取代理组，并验证目标是可见 `Selector` 组且节点属于该组
+- 节点写入后重新读取代理组，主开关操作后重新读取 TCP 监听状态，不能把请求或快捷键发送成功当作状态成功
+- 主开关只允许发送固定 `Ctrl+Alt+Shift+F12`，界面必须提示用户在 FlClash 的全局快捷键中将“启动”绑定为同一组合键
+- 快捷键发送失败、FlClash 权限级别更高或监听状态未改变时必须返回可恢复错误，不得伪报成功
+- 不得读取或修改 Windows 系统代理；主开关必须明确描述为 FlClash 代理的“启动/停止”
+- 不读取、修改或导出 FlClash 配置文件、订阅、控制密钥、账号或其他隐私数据
+- 不自动开启 FlClash 外部控制；连接不可用时提供明确的人工开启说明
+- 周期刷新必须使用共享 Scheduler，入口隐藏或卸载时释放；不得自行创建 `setInterval`
+- 浏览器 Memory Host 只返回不可用状态，不模拟真实节点或 FlClash 主开关切换成功
+
+真实 FlClash 主开关切换会影响当前网络流量。产品界面中由用户主动点击并授予 `proxy.control` 后可以执行；Codex 或自动化进行写入验收前，仍须记录原状态、说明影响并获得用户单独确认，完成后恢复原状态。自动化单元测试不得发送真实快捷键。
 
 ## 9. Windows 系统设备插件要求
 
@@ -1097,6 +1120,7 @@ PR 描述至少记录：
 [ ] 真实系统能力已在 Windows 上验证（如适用）
 [ ] HDR 插件未把 WCG/Advanced Color 误报为 HDR，且写入后重新读取状态（如适用）
 [ ] 音频插件区分读取和控制权限，释放设备订阅并核对三个默认角色（如适用）
+[ ] 本机代理插件只访问固定回环地址，区分读取和控制权限，验证组内节点及系统代理归属（如适用）
 [ ] CSS 有插件作用域并使用宿主公开 Design Tokens
 [ ] 没有导入宿主内部 UI 组件、覆盖 :root 或创建第二套视觉体系
 [ ] 使用视觉交接 v1.0.2 正式 SVG，不从 PNG 裁图

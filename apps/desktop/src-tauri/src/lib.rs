@@ -7,6 +7,7 @@ use tauri::Manager;
 
 use services::audio::AudioState;
 use services::network::NetworkState;
+use services::proxy::ProxyClientState;
 use services::widgets::WidgetHostState;
 use state::CoreState;
 
@@ -20,6 +21,7 @@ pub fn run() {
             app.manage(WidgetHostState::new());
             app.manage(AudioState::new());
             app.manage(NetworkState::new()?);
+            app.manage(ProxyClientState::new()?);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -55,6 +57,10 @@ pub fn run() {
             commands::display::display_targets_list,
             commands::display::display_hdr_set,
             commands::network::network_get_json,
+            commands::proxy::proxy_client_status,
+            commands::proxy::proxy_groups_list,
+            commands::proxy::proxy_group_select,
+            commands::proxy::proxy_client_set_enabled,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run ToolCenter");

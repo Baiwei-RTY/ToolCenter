@@ -41,6 +41,16 @@
 - 专注结束会播放升调提示音、完成轮数增加一次并自动开始休息；休息结束会播放降调提示音并停下等待下一轮专注；跨休眠或重启后按绝对结束时间恢复；
 - 番茄钟已完成浏览器三档视觉复核与真实 Tauri 桌面壳交互回归；全量验证通过 90 项前端测试和 22 项 Rust 测试，Web 生产构建通过；
 - 本轮番茄钟重构在 `codex/pomodoro-material3-formal` 分支开发；2026-08-11 经用户确认后已通过 `release-build` 覆盖唯一 `正式版/`。正式程序启动正常，番茄钟插件显示“运行环境就绪”，当前保留一个隐藏实例；交付 EXE SHA-256 为 `5e06ed97ea398033f8f116ef0a41c4dfddbaa9686e470652f084c96d9831b5e0`。
+- `PluginContext.proxyClient` 已接入受限的本地代理客户端服务，提供控制端状态、代理组读取、节点切换和 FlClash 主代理开关；`proxy.read` 与 `proxy.control` 在 Rust 命令层分别校验，现固定连接 FlClash ToolCenter 定制版 `http://127.0.0.1:19090`，不读取或修改 FlClash 配置文件、订阅、密钥或 Windows 系统代理；
+- 内置 `toolcenter.flclash-controller` Widget 已完成首个开发版本，支持中/宽两档 Material 3 紫色布局、共享 Scheduler 自动刷新、手动重连、Selector 代理组与节点切换，以及 FlClash 主代理启动/停止；主开关通过用户在 FlClash 中绑定的固定 `Ctrl+Alt+Shift+F12` 快捷键桥接，并在操作后核验 `mixed-port` 监听状态；
+- 本轮完整验证通过 98 项前端测试和 27 项 Rust 测试，插件校验、TypeScript、ESLint、Stylelint、Rustfmt、Clippy、Cargo Test 与 Web 生产构建均通过；FlClash Widget 继续独立懒加载；
+- 2026-08-12 已只读确认正在运行的 FlClash ToolCenter 定制版监听 `127.0.0.1:19090`，内核版本为 `1.10.0`，`mixed-port` 为 `17890`，可读取 2 个 Selector 组；Widget 已切换到定制版接口并改为大号启动/停止按钮，节点切换仍由宿主验证并由定制版同步持久状态。真实主开关须在用户配置专用快捷键并单独授权写操作后验收；自动化未发送快捷键或改变网络状态。
+- 同日已在真实 Tauri 桌面壳显示 FlClash Widget：成功读取定制版 `1.10.0`、主代理运行状态、实际生效的代理组与当前节点；使用同一受限控制接口完成 `Japan 04 → Japan 03 → Japan 04` 可逆切换，内核运行态与定制版持久选择在切换及恢复后均一致。生产 Web 构建、99 项前端测试、Rustfmt、Clippy 与 31 项 Rust 测试通过。由于定制版尚未配置 `Ctrl+Alt+Shift+F12` 启动快捷键，本轮未触发主开关。
+- FlClash 停止后部分 `/configs` 响应可能暂时不提供有效 `mixed-port`；本机代理服务会记住最后一个经过验证的端口。即使 ToolCenter 在 FlClash 已停止时才启动、没有端口缓存，重新开启时也会先发送全局快捷键，再读取 FlClash 恢复后的端口并核验监听状态，不再显示通用“输入内容不符合要求”；回归测试全量通过 98 项前端测试和 28 项 Rust 测试。
+- 节点选择会读取 FlClash 当前运行模式：规则模式优先选择实际配置中的普通 Selector，Global 模式优先选择 `GLOBAL`；旧版误存的 `GLOBAL` 默认值通过新版实例存储键自动迁移，用户之后仍可手动查看和切换其他代理组。真实控制接口已使用当前节点做无状态变化校验并返回 HTTP 204；全量验证通过 99 项前端测试和 30 项 Rust 测试。
+- FlClash Widget 的节点选项已接入定制版 `/proxies` 中的最近测速历史，按节点显示 `XX ms`、`不可用`、`未测速`、`自动`或`直连`；该功能复用原有 5 秒刷新，不额外发起节点测速或增加权限。
+- 真实连接状态确认 Selector 更新后已有连接仍可能继续使用旧节点；节点切换流程现会在控制接口确认切换成功后，仅关闭 `chains` 中经过该代理组的旧连接，保留 DIRECT 与其他代理组连接，使新节点立即接管后续重连。
+- 进一步真实联调确认规则模式下修改 `GLOBAL` 会被 Mihomo 接受但不影响规则流量，造成组件“假成功”：Widget 曾保存 `GLOBAL`，而 `/rules` 和连接链均指向“节点选择”。代理组列表与写入校验现同时依据 `/configs.mode` 和 `/rules[].proxy`，只允许当前模式实际生效的 Selector；旧的无效保存值会自动迁移。
 
 ## 等待后续设计输入
 

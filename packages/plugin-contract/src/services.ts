@@ -160,6 +160,41 @@ export interface NetworkService {
   getJson<T>(request: NetworkJsonRequest): Promise<T>;
 }
 
+export interface ProxyClientStatus {
+  readonly controllerAvailable: boolean;
+  readonly version: string | null;
+  readonly mode: string | null;
+  readonly mixedPort: number | null;
+  readonly proxyEnabled: boolean;
+}
+
+export type ProxyNodeLatencyStatus =
+  | "available"
+  | "unavailable"
+  | "untested"
+  | "automatic"
+  | "direct";
+
+export interface ProxyNodeSummary {
+  readonly name: string;
+  readonly delayMs: number | null;
+  readonly latencyStatus: ProxyNodeLatencyStatus;
+}
+
+export interface ProxyGroupSummary {
+  readonly name: string;
+  readonly selected: string;
+  readonly all: readonly string[];
+  readonly nodes: readonly ProxyNodeSummary[];
+}
+
+export interface ProxyClientService {
+  getStatus(): Promise<ProxyClientStatus>;
+  listGroups(): Promise<readonly ProxyGroupSummary[]>;
+  selectProxy(groupName: string, proxyName: string): Promise<void>;
+  setProxyEnabled(enabled: boolean): Promise<void>;
+}
+
 export interface SystemSummary {
   readonly platform: string;
   readonly architecture: string;
@@ -217,6 +252,7 @@ export interface PluginContext {
   readonly display: DisplayService;
   readonly credentials: CredentialService;
   readonly network: NetworkService;
+  readonly proxyClient: ProxyClientService;
   readonly system: SystemService;
   readonly tasks: TaskService;
   readonly permissions: PermissionService;

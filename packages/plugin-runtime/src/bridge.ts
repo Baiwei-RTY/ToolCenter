@@ -76,6 +76,19 @@ export class MemoryHostBridge implements HostBridge {
         return undefined as TResult;
       case "network_get_json":
         throw new Error("NetworkService is not available in browser mode.");
+      case "proxy_client_status":
+        return {
+          controllerAvailable: false,
+          version: null,
+          mode: null,
+          mixedPort: null,
+          proxyEnabled: false,
+        } as TResult;
+      case "proxy_groups_list":
+        return [] as TResult;
+      case "proxy_group_select":
+      case "proxy_client_set_enabled":
+        throw new Error("ProxyClientService control is not available in browser mode.");
       case "permission_status":
         return (this.#permissions.get(`${pluginId}:${String(payload.permission ?? "")}`) ??
           "prompt") as TResult;

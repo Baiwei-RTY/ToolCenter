@@ -21,6 +21,8 @@ export type KnownPermission =
   | "system.process-read"
   | "system.process-control"
   | "network.request"
+  | "proxy.read"
+  | "proxy.control"
   | "notifications.show"
   | "hotkeys.register"
   | "background.run"

@@ -9,6 +9,8 @@ import type {
   LoggerService,
   PermissionDecision,
   PluginContext,
+  ProxyClientStatus,
+  ProxyGroupSummary,
   Release,
   SystemSummary,
   UiNotification,
@@ -175,6 +177,20 @@ export function createPluginContextFactory(options: HostContextOptions): PluginC
               pluginId,
               request,
             }),
+        },
+        proxyClient: {
+          getStatus: () =>
+            bridge.invoke<ProxyClientStatus>("proxy_client_status", { pluginId }),
+          listGroups: () =>
+            bridge.invoke<readonly ProxyGroupSummary[]>("proxy_groups_list", { pluginId }),
+          selectProxy: (groupName: string, proxyName: string) =>
+            bridge.invoke<void>("proxy_group_select", {
+              pluginId,
+              groupName,
+              proxyName,
+            }),
+          setProxyEnabled: (enabled: boolean) =>
+            bridge.invoke<void>("proxy_client_set_enabled", { pluginId, enabled }),
         },
         system: {
           getSummary: () => bridge.invoke<SystemSummary>("diagnostics_get"),

@@ -11,6 +11,7 @@ Tauri Core
 ├─ 日志与诊断
 ├─ Widget 实例、显示器和透明窗口区域管理
 ├─ Windows 凭据管理器与受控 HTTPS GET 服务
+├─ 固定回环地址的代理客户端控制服务
 ├─ Windows Core Audio 服务
 └─ Windows DisplayConfig HDR 服务
 
@@ -45,6 +46,13 @@ Credential / HTTPS Service
 ├─ network.request 在 Rust 命令层再次校验
 ├─ 允许免凭据公开请求或由 Rust 注入安全凭据
 └─ 仅允许公开域名的 HTTPS GET，并限制端口、重定向、超时和响应大小
+
+Local Proxy Client Service
+├─ 只连接 FlClash ToolCenter 定制版的 http://127.0.0.1:19090，不接受插件传入地址
+├─ proxy.read / proxy.control 命令级权限校验
+├─ 节点切换前重新验证 Selector 代理组与节点归属
+├─ 通过 TCP 监听表核验 FlClash mixed-port 是否实际运行
+└─ 主开关仅发送固定 Ctrl+Alt+Shift+F12，并在发送后重新核验监听状态
 ```
 
 ## 关键决策
@@ -59,6 +67,7 @@ Credential / HTTPS Service
 8. 音频查询和通知使用公开的 Windows Core Audio API。默认音频端点切换没有受支持的公开 API，因此未公开 `IPolicyConfig` 只存在于单独 Rust 兼容层，失败时返回结构化错误，不向插件暴露。
 9. HDR 使用 Windows CCD/DisplayConfig API。Windows 11 使用独立 HDR 状态，Windows 10 只在旧接口能够可靠表示 HDR 时降级；无法区分 HDR 与其他 Advanced Color 状态时返回结构化错误。Display 服务不缓存目标、不轮询，也不复用 Widget Manager 的显示器 ID。
 10. 敏感 API Key 不进入插件 JSON。插件通过 `context.credentials` 保存逻辑凭据引用，请求时由 `context.network` 对应的 Rust 服务读取并注入 Authorization 头；插件 JavaScript 和日志都不接收明文回读。
+11. 本机代理控制不复用通用 Network Service。`context.proxyClient` 只能访问固定的 FlClash ToolCenter 定制版回环控制地址 `127.0.0.1:19090`，禁止自定义主机、端口、重定向和远程控制；节点写入前检查组内成员关系。定制版会将外部节点切换同步回自身选择状态。Mihomo 外部控制 API 没有 FlClash `startListener/stopListener` 动作，因此主开关通过用户在 FlClash 中绑定的固定全局快捷键桥接，并以 `mixed-port` 监听状态作为成功依据；本服务不读写 Windows 系统代理。
 
 ## 持久化位置
 

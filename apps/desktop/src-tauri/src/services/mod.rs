@@ -5,6 +5,7 @@ pub mod display;
 pub mod logs;
 pub mod network;
 pub mod permissions;
+pub mod proxy;
 pub mod settings;
 pub mod storage;
 pub mod widgets;

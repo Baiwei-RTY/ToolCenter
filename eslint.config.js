@@ -11,6 +11,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "**/target/**",
       "**/*.generated.ts",
+      ".codex-preview/**",
       "design-prototypes/**",
       "design-previews/**",
       "design-qa-artifacts/**",
